@@ -1,0 +1,21 @@
+{
+  "name": "@daybook/scripts",
+  "private": true,
+  "type": "module",
+  "description": "Daybook command line: compute pay addresses, create invoices, read invoice status",
+  "scripts": {
+    "daybook": "node src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/*.test.ts"
+  },
+  "dependencies": {
+    "viem": "2.58.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
