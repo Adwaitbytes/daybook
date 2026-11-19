@@ -2,6 +2,6 @@
 import type { DeploymentRecord } from "@/lib/deployment-types";
 
 export const generatedDeployments: { lasna: DeploymentRecord | null; mainnet: DeploymentRecord | null } = {
-  lasna: null,
+  lasna: { reactive: "0x182BA62E240433B54136712d8840Ccc354bb78d3", deployBlock: null, source: "docs/DEPLOYMENTS.md" },
   mainnet: null,
 };

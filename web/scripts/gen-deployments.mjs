@@ -44,8 +44,11 @@ function fromJson(value, file, inherited = {}) {
 
 function fromMarkdown(text, file) {
   const found = [];
+  // Superseded deployments stay documented below the current one; their rows must never be picked up.
+  let superseded = false;
   for (const line of text.split("\n")) {
-    if (!/DaybookReactive/.test(line)) continue;
+    if (/^#{1,6}\s/.test(line)) superseded = /superseded/i.test(line);
+    if (superseded || !/DaybookReactive/.test(line)) continue;
     const m = line.match(ADDRESS);
     if (m === null) continue;
     const chainId = /lasna|5318007/i.test(line) ? 5318007 : /mainnet|1597/i.test(line) ? 1597 : undefined;
