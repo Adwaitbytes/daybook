@@ -95,7 +95,7 @@ contract DaybookTill is IDaybookTill, AbstractCallback, Ownable2Step, Pausable, 
         uint256 excess,
         address payer,
         SplitPolicy calldata policy
-    ) external onlyServiceProvider onlyCallbackSender(rc) whenNotPaused nonReentrant {
+    ) external nonReentrant onlyServiceProvider onlyCallbackSender(rc) whenNotPaused {
         if (settled[invoiceId][seq]) {
             emit DuplicateSettlement(invoiceId, seq);
             return;
@@ -118,7 +118,7 @@ contract DaybookTill is IDaybookTill, AbstractCallback, Ownable2Step, Pausable, 
 
     /// @notice Sweeps the whole `token` balance of an invoice's pay address to `to`. Works while paused, so a
     /// failed or stuck callback can never strand funds.
-    function sweep(uint256 invoiceId, address token, address to) external onlyOwner nonReentrant {
+    function sweep(uint256 invoiceId, address token, address to) external nonReentrant onlyOwner {
         if (to == address(0)) revert ZeroAddress();
         bytes32 salt = DaybookLib.salt(_CALLBACK_SENDER, invoiceId);
         uint256 amount = IERC20(token).balanceOf(FACTORY.payAddress(salt));
@@ -130,7 +130,7 @@ contract DaybookTill is IDaybookTill, AbstractCallback, Ownable2Step, Pausable, 
     }
 
     /// @notice Sweeps native coin mistakenly sent to an invoice's pay address.
-    function sweepNative(uint256 invoiceId, address payable to) external onlyOwner nonReentrant {
+    function sweepNative(uint256 invoiceId, address payable to) external nonReentrant onlyOwner {
         uint256 amount = FACTORY.sweepNative(DaybookLib.salt(_CALLBACK_SENDER, invoiceId), to);
         emit ManualSweep(invoiceId, address(0), to, amount);
     }

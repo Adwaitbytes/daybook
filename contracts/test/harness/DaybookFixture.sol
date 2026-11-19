@@ -147,8 +147,8 @@ abstract contract DaybookFixture is OmniHarness {
     }
 
     function _warpTick(uint256 secondsAhead) internal {
-        vm.warp(block.timestamp + secondsAhead);
-        vm.roll(block.number + secondsAhead);
+        vm.warp(vm.getBlockTimestamp() + secondsAhead);
+        vm.roll(vm.getBlockNumber() + secondsAhead);
         _cronTick();
     }
 

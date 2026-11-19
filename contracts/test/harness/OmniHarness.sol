@@ -160,9 +160,9 @@ abstract contract OmniHarness is Test {
         if (n > 2) rec.topic2 = uint256(l.topics[2]);
         if (n > 3) rec.topic3 = uint256(l.topics[3]);
         rec.data = l.data;
-        rec.blockNumber = block.number;
+        rec.blockNumber = vm.getBlockNumber();
         rec.opCode = n;
-        rec.blockHash = uint256(blockhash(block.number - 1));
+        rec.blockHash = uint256(blockhash(vm.getBlockNumber() - 1));
         rec.txHash = txHash;
         rec.logIndex = logIndex;
     }
@@ -225,8 +225,8 @@ abstract contract OmniHarness is Test {
         rec.chainId = block.chainid;
         rec.contractAddress = CRON_EMITTER;
         rec.topic0 = CRON100;
-        rec.data = abi.encode(block.number);
-        rec.blockNumber = block.number;
+        rec.data = abi.encode(vm.getBlockNumber());
+        rec.blockNumber = vm.getBlockNumber();
         rec.opCode = 1;
         rec.txHash = uint256(keccak256(abi.encode("cron", ++txCounter)));
         _deliver(rec);

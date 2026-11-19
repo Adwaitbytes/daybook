@@ -892,7 +892,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint256 n = acc.length;
         for (uint256 i; i < n; ++i) {
             address contractAddr = strictTokens ? acc[i].token : address(0);
-            bool dup;
+            bool dup = false;
             for (uint256 j; j < subs.length; ++j) {
                 if (subs[j].chainId == acc[i].chainId && subs[j].contractAddr == contractAddr) {
                     dup = true;

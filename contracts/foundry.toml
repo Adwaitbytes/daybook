@@ -31,3 +31,29 @@ bracket_spacing = true
 int_types = "long"
 quote_style = "double"
 number_underscore = "thousands"
+
+# Lints silenced on purpose (see docs/DECISIONS.md):
+# - reentrancy-events / reentrancy-no-eth: the only external calls after state changes go to the Reactive system
+#   contract (a protocol constant), to the owner-configured factory and reserve, or to tokens the owner enabled;
+#   the till's entry points are nonReentrant.
+# - unsafe-typecast: every narrowing cast is bounded by a check (amounts <= uint96/uint128, ids from counters,
+#   chain ids < 2^64, decimals <= 30).
+# - require-revert-in-loop: input validation loops over at most eight accepted pairs or five recipients.
+# - missing-events-arithmetic: the cron cursors are internal bookkeeping, not configuration.
+# - missing-events-access-control, missing-zero-check: false positives (setTill emits TillAuthorized; the vault's
+#   only caller, the factory, checks the recipient).
+# - block-timestamp: due and expiry are timestamps by design (minute precision; validator skew is irrelevant).
+# - calls-loop: bounded loops (at most eight pairs, five recipients, eight cron items) to the system contract or
+#   to tokens; a failing team transfer is caught and redirected rather than reverting the loop.
+[lint]
+exclude_lints = [
+    "reentrancy-events",
+    "reentrancy-no-eth",
+    "unsafe-typecast",
+    "require-revert-in-loop",
+    "missing-events-arithmetic",
+    "missing-events-access-control",
+    "missing-zero-check",
+    "block-timestamp",
+    "calls-loop",
+]

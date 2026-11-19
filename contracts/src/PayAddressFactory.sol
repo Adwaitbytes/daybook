@@ -100,8 +100,8 @@ contract PayAddressFactory is Ownable2Step {
 
     /// @notice Moves `amount` of `token` from the pay address to the calling till, deploying the vault first
     /// if needed. Tills only.
-    function sweep(bytes32 salt, IERC20 token, uint256 amount) external onlyTill returns (address vault) {
-        vault = deploy(salt);
+    function sweep(bytes32 salt, IERC20 token, uint256 amount) external onlyTill {
+        address vault = deploy(salt);
         InvoiceVault(payable(vault)).sweep(token, msg.sender, amount);
     }
 
