@@ -39,7 +39,7 @@ async function RulesBody() {
   if (v.kind === "rpc-error") return <ChainError network={v.network} retryHref="/rules" />;
   const r = v.value;
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-2">
+    <div className="grid items-start gap-8 lg:grid-cols-2 [&>*]:min-w-0">
       <div className="flex flex-col gap-8">
         {r.policies.length === 0 ? (
           <EmptyRecord title="No split policy yet">
@@ -53,46 +53,51 @@ async function RulesBody() {
             const treasury = Number(BPS) - p.taxBps - team;
             return (
               <section key={p.id} className="sheet sheet-ruled" aria-labelledby={`policy-${p.id}`}>
-                <div className="flex h-[var(--line)] items-baseline justify-between gap-3">
-                  <h2 id={`policy-${p.id}`} className="m-0 text-[17px] font-bold leading-[var(--line)]">
+                <div className="flex min-h-[var(--line)] flex-wrap items-baseline justify-between gap-x-3">
+                  <h2
+                    id={`policy-${p.id}`}
+                    className="m-0 whitespace-nowrap text-[17px] font-bold leading-[var(--line)]"
+                  >
                     Policy {p.id}
                   </h2>
-                  <span className="t-meta">fixed at creation</span>
+                  <span className="t-meta leading-[var(--line)]">fixed at creation</span>
                 </div>
-                <table className="ledger">
-                  <thead>
-                    <tr>
-                      <th scope="col">Goes to</th>
-                      <th scope="col">Address</th>
-                      <th scope="col" className="col-amt">
-                        Share
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Tax reserve</td>
-                      <td className="col-dim wrap-cell">savings vault on each chain</td>
-                      <td className="col-amt num">{formatBps(p.taxBps)}</td>
-                    </tr>
-                    {p.team.map((m) => (
-                      <tr key={m.account}>
-                        <td>Team</td>
-                        <td>
-                          <Addr chainId={84532} address={m.account} />
-                        </td>
-                        <td className="col-amt num">{formatBps(m.bps)}</td>
+                <div className="-mx-1 overflow-x-auto">
+                  <table className="ledger">
+                    <thead>
+                      <tr>
+                        <th scope="col">Goes to</th>
+                        <th scope="col">Address</th>
+                        <th scope="col" className="col-amt">
+                          Share
+                        </th>
                       </tr>
-                    ))}
-                    <tr className="total">
-                      <td>Treasury</td>
-                      <td>
-                        <Addr chainId={84532} address={p.treasury} />
-                      </td>
-                      <td className="col-amt num">{formatBps(treasury)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Tax reserve</td>
+                        <td className="col-dim wrap-cell">savings vault on each chain</td>
+                        <td className="col-amt num">{formatBps(p.taxBps)}</td>
+                      </tr>
+                      {p.team.map((m) => (
+                        <tr key={m.account}>
+                          <td>Team</td>
+                          <td>
+                            <Addr chainId={84532} address={m.account} />
+                          </td>
+                          <td className="col-amt num">{formatBps(m.bps)}</td>
+                        </tr>
+                      ))}
+                      <tr className="total">
+                        <td>Treasury</td>
+                        <td>
+                          <Addr chainId={84532} address={p.treasury} />
+                        </td>
+                        <td className="col-amt num">{formatBps(treasury)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
                 <p className="t-meta m-0 mt-[var(--line)]">
                   Overpayments and late transfers go to the treasury unsplit. Each share rounds down; the treasury takes
                   the dust.

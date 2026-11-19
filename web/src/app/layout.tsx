@@ -25,13 +25,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const d = deployment();
   return (
     <html lang="en-GB" className={`${caslon.variable} ${dmMono.variable}`}>
-      <body>
+      <body className="flex min-h-dvh flex-col">
         <a className="skip" href="#main">
           Skip to content
         </a>
         <Masthead />
         <Providers>
-          <main id="main">{children}</main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
         </Providers>
         <Footer reactive={d.kind === "deployed" ? d.reactive : null} />
       </body>

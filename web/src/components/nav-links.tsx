@@ -13,7 +13,7 @@ const LINKS = [
 export function NavLinks() {
   const path = usePathname();
   return (
-    <nav aria-label="Main" className="-mx-2 flex max-w-full flex-wrap gap-x-2 md:gap-x-3">
+    <nav aria-label="Main" className="-mx-1.5 flex max-w-full flex-nowrap md:-mx-2 md:gap-x-3">
       {LINKS.map((l) => {
         const current = path === l.href || path.startsWith(`${l.href}/`);
         return (
@@ -21,7 +21,7 @@ export function NavLinks() {
             key={l.href}
             href={l.href}
             aria-current={current ? "page" : undefined}
-            className={`whitespace-nowrap px-2 py-2.5 text-[15px] leading-5 no-underline decoration-red underline-offset-[6px] hover:text-ink hover:underline ${current ? "text-ink underline" : "text-ink-2"}`}
+            className={`whitespace-nowrap px-1.5 py-2.5 md:px-2 text-[15px] leading-5 no-underline decoration-red underline-offset-[6px] hover:text-ink hover:underline ${current ? "text-ink underline" : "text-ink-2"}`}
           >
             {l.label}
           </Link>

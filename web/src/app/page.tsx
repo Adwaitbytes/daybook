@@ -247,7 +247,7 @@ async function HeroLedger() {
 
   return (
     <div className="sheet sheet-ruled relative" style={{ minHeight: `calc(var(--line) * ${HERO_LINES + 3})` }}>
-      <div className="flex h-[var(--line)] items-baseline justify-between gap-3">
+      <div className="flex min-h-[var(--line)] flex-wrap items-baseline justify-between gap-x-3">
         <h2 className="m-0 text-[17px] font-bold leading-[var(--line)]">
           Invoice {s.id}
           <span className="hidden font-normal text-ink-2 sm:inline">, the latest to settle</span>
@@ -285,7 +285,7 @@ async function HeroLedger() {
           ))}
         </tbody>
       </table>
-      <div className="pointer-events-none relative mt-2 ml-auto mr-4 w-fit mix-blend-multiply md:absolute md:right-[36%] md:top-[calc(var(--line)*5)] md:m-0 dark:mix-blend-normal">
+      <div className="pointer-events-none relative -mt-[48px] ml-auto mr-16 w-fit mix-blend-multiply md:absolute md:bottom-[calc(var(--line)*2.2)] md:right-[150px] md:m-0 dark:mix-blend-normal">
         <Stamp
           className="w-[112px] md:w-[148px]"
           delay={rows.length * 0.36 + 0.4}

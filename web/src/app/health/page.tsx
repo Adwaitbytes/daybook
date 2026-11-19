@@ -39,7 +39,7 @@ async function HealthBody() {
   if (v.kind === "not-deployed") return <NotDeployed what="The health page" />;
   if (v.kind === "rpc-error") return <ChainError network={v.network} retryHref="/health" />;
   const h = v.value;
-  const rows: { label: string; value: string; note: string; tone?: "red" | "amber" }[] = [
+  const rows: { label: string; value: string; note: string; tone?: "red" | "amber" | "muted" }[] = [
     {
       label: "Running since",
       value: h.since === null ? "No invoices yet" : formatDate(h.since.at),
@@ -55,7 +55,8 @@ async function HealthBody() {
     },
     {
       label: "REACT spent",
-      value: react(h.spent.total),
+      value: h.spent.samples === 0 ? "Not measured yet" : react(h.spent.total),
+      tone: h.spent.samples === 0 ? "muted" : undefined,
       note:
         h.spent.samples === 0
           ? "No reaction measured yet"
@@ -77,11 +78,12 @@ async function HealthBody() {
         h.reactionsLeft === null
           ? "Needs at least one measured reaction"
           : `at the mean measured cost, ${react(h.spent.samples === 0 ? 0n : h.spent.total / BigInt(h.spent.samples))} each`,
-      tone: h.reactionsLeft !== null && h.reactionsLeft < 50n ? "amber" : undefined,
+      tone: h.reactionsLeft === null ? "muted" : h.reactionsLeft < 50n ? "amber" : undefined,
     },
     {
       label: "Last loop",
       value: h.lastLoop === null ? "No settled loop yet" : formatElapsed(h.lastLoop.ms).slice(1),
+      tone: h.lastLoop === null ? "muted" : undefined,
       note:
         h.lastLoop === null
           ? "Transfer to settlement, from block times"
@@ -90,7 +92,7 @@ async function HealthBody() {
   ];
   return (
     <div className="sheet sheet-ruled">
-      <div className="flex h-[var(--line)] items-baseline justify-between gap-3">
+      <div className="flex min-h-[var(--line)] flex-wrap items-baseline justify-between gap-x-3">
         <h2 className="m-0 text-[17px] font-bold leading-[var(--line)]">Health</h2>
         <span className="t-meta">read {formatTime(h.readAt)} UTC</span>
       </div>
@@ -98,15 +100,15 @@ async function HealthBody() {
         {rows.map((r) => (
           <div
             key={r.label}
-            className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 leading-[var(--line)]"
+            className="grid grid-cols-1 gap-x-4 leading-[var(--line)] sm:grid-cols-[minmax(0,1fr)_auto]"
           >
             <dt className="text-[16px]">{r.label}</dt>
             <dd
-              className={`num m-0 text-right text-[15px] md:text-[17px] ${r.tone === "red" ? "text-red" : r.tone === "amber" ? "text-amber" : ""}`}
+              className={`num m-0 whitespace-nowrap text-[15px] sm:text-right md:text-[17px] ${r.tone === "red" ? "text-red" : r.tone === "amber" ? "text-amber" : r.tone === "muted" ? "font-serif text-[15px]! italic text-ink-2" : ""}`}
             >
               {r.value}
             </dd>
-            <dd className="t-meta col-span-2 m-0 leading-[var(--line)]!">{r.note}</dd>
+            <dd className="t-meta m-0 leading-[var(--line)]! sm:col-span-2">{r.note}</dd>
           </div>
         ))}
       </dl>

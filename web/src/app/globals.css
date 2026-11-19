@@ -301,6 +301,11 @@
       padding: var(--line) 28px var(--line) 76px;
     }
   }
+  @media (max-width: 44.99rem) {
+    .ledger td.col-amt {
+      font-size: 14px;
+    }
+  }
   .sheet-pad {
     padding: 24px var(--gutter);
   }

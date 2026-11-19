@@ -5,7 +5,7 @@ import { Wordmark } from "./wordmark";
 export function Masthead() {
   return (
     <header className="no-print border-b border-rule-strong">
-      <div className="wrap flex flex-wrap items-center justify-between gap-x-6 gap-y-1 py-3 md:py-4">
+      <div className="wrap flex flex-wrap items-center justify-between gap-x-6 pb-1 pt-3 md:py-4">
         <Link href="/" className="no-underline text-ink" aria-label="Daybook home">
           <Wordmark />
         </Link>

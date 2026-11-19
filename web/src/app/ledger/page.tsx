@@ -57,7 +57,7 @@ function particulars(l: LedgerLine): string {
 
 function amount(l: LedgerLine): string {
   const raw = BigInt(l.amount) + BigInt(l.excess);
-  return l.decimals === null ? `${formatUnitsFixed(raw, 0, 0)} raw units` : formatUnitsFixed(raw, l.decimals);
+  return l.decimals === null ? formatUnitsFixed(raw, 0, 0) : formatUnitsFixed(raw, l.decimals);
 }
 
 async function LedgerBody() {
@@ -88,10 +88,13 @@ async function LedgerBody() {
   const flagged = lines.filter((l) => l.kind === "WrongToken").length;
   return (
     <div className="sheet sheet-ruled">
-      <div className="flex h-[var(--line)] items-baseline justify-between gap-3">
-        <h2 className="m-0 text-[17px] font-bold leading-[var(--line)]">Day book</h2>
-        <span className="t-meta">
-          {lines.length} lines, {matched} matched, {flagged} flagged, {invoices} invoices
+      <div className="flex min-h-[var(--line)] flex-wrap items-baseline justify-between gap-x-3">
+        <h2 className="m-0 whitespace-nowrap text-[17px] font-bold leading-[var(--line)]">Day book</h2>
+        <span className="t-meta leading-[var(--line)]">
+          {lines.length} lines, {flagged} flagged
+          <span className="hidden md:inline">
+            , {matched} matched, {invoices} invoices
+          </span>
         </span>
       </div>
       <div className="-mx-1 overflow-x-auto">
@@ -131,7 +134,10 @@ async function LedgerBody() {
                       {chainName(l.chainId)}
                       {l.originAt === null ? "" : `, ${formatDate(l.originAt)} ${formatTime(l.originAt)}`}
                     </span>
-                    <span className="t-meta block">from {shortHex(l.payer)}</span>
+                    <span className="t-meta block">
+                      from {shortHex(l.payer)}
+                      {l.decimals === null ? ", amount in raw units of an unknown token" : ""}
+                    </span>
                   </td>
                   <td className="col-dim hidden md:table-cell">{chainName(l.chainId)}</td>
                   <td className="hidden lg:table-cell">

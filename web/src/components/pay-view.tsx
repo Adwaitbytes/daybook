@@ -62,7 +62,7 @@ export function PayView({ initial, live = true }: { initial: Ok; live?: boolean 
     );
   }, [status.phase, status.remaining]);
 
-  const paidFirst = status.phase === "settled" || status.phase === "payment-seen";
+  const headed = s.payAddressVerified && ["settled", "payment-seen", "expired", "cancelled"].includes(status.phase);
 
   return (
     <div className="wrap pb-8 pt-8 md:pt-12" data-phase={status.phase}>
@@ -75,27 +75,35 @@ export function PayView({ initial, live = true }: { initial: Ok; live?: boolean 
           UTC; it retries on its own.
         </p>
       ) : null}
-      {/* DOM order is the phone order: the payment first while money is due, the stamped invoice first once paid. */}
-      <div className="grid items-start gap-8 lg:grid-cols-[7fr_5fr] lg:gap-x-12 lg:gap-y-10">
-        {paidFirst ? null : (
-          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <Panel data={data} status={status} />
+      {/* DOM order is the phone order: the payment first while money is due; once the invoice is paid or
+          closed, the one-line verdict first, then the stamped invoice, the carbon copy and the receipt. */}
+      {headed ? (
+        <div className="grid items-start gap-8 lg:grid-cols-[7fr_5fr] lg:gap-x-12 lg:gap-y-8">
+          <div className="lg:col-start-2 lg:row-start-1">
+            <Verdict s={s} status={status} />
           </div>
-        )}
-        <div className="lg:col-start-1 lg:row-start-1">
-          <InvoiceSheet s={s} status={status} details={data.details} />
+          <div className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
+            <InvoiceSheet s={s} status={status} details={data.details} />
+          </div>
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-2">
+            <StatusSlip status={status} invoiceId={s.id} links={status.phase !== "settled"} />
+          </div>
+          {status.phase === "settled" ? (
+            <div className="lg:col-start-1 lg:row-start-3">
+              <Receipt s={s} status={status} />
+            </div>
+          ) : null}
         </div>
-        {paidFirst ? (
-          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+      ) : (
+        <div className="grid items-start gap-8 lg:grid-cols-[7fr_5fr] lg:gap-x-12">
+          <div className="lg:col-start-2 lg:row-start-1">
             <Panel data={data} status={status} />
           </div>
-        ) : null}
-        {status.phase === "settled" ? (
-          <div className="lg:col-start-1 lg:row-start-2">
-            <Receipt s={s} status={status} />
+          <div className="lg:sticky lg:top-8 lg:col-start-1 lg:row-start-1">
+            <InvoiceSheet s={s} status={status} details={data.details} />
           </div>
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -178,42 +186,56 @@ function InvoiceSheet({ s, status, details }: { s: InvoiceSnapshot; status: Deri
       </table>
 
       <div
-        className={`relative mt-7 border-t-2 border-ink pt-3 ${status.phase === "settled" ? "pb-[104px] md:pb-[64px]" : status.phase === "part-paid" ? "pb-[88px] md:pb-[40px]" : ""}`}
+        className={`relative mt-7 border-t-2 border-ink pt-3 ${status.phase === "settled" ? "pb-[84px] md:pb-4" : status.phase === "part-paid" ? "pb-[76px] md:pb-4" : ""}`}
       >
         <div className="flex items-baseline justify-between gap-4">
-          <span className="t-colhead text-[17px]">{status.phase === "settled" ? "Amount paid" : "Amount due"}</span>
-          <span className="num relative z-[1] text-[clamp(34px,4vw,48px)] font-medium leading-none tracking-[-0.03em]">
-            {formatAmount(
-              status.phase === "settled" || status.phase === "payment-seen" ? BigInt(s.amount) : status.remaining,
-            )}
-            <span className="ml-1.5 text-[0.42em] tracking-normal text-ink-2">USDC</span>
+          <span className="t-colhead text-[17px]">
+            {status.phase === "settled"
+              ? "Amount paid"
+              : status.phase === "payment-seen"
+                ? "Amount received"
+                : voided
+                  ? "Was due"
+                  : "Amount due"}
+          </span>
+          <span
+            className={`num relative text-[clamp(34px,4vw,48px)] font-medium leading-none tracking-[-0.03em] ${voided ? "text-ink-3 line-through decoration-red decoration-2" : ""}`}
+          >
+            <span className="relative z-[1]">
+              {formatAmount(
+                status.phase === "settled" || status.phase === "payment-seen" || voided
+                  ? BigInt(s.amount)
+                  : status.remaining,
+              )}
+              <span className="ml-1.5 text-[0.42em] tracking-normal text-ink-2">USDC</span>
+            </span>
+            {status.phase === "settled" ? (
+              <span className="pointer-events-none absolute right-0 top-[calc(100%+4px)] mix-blend-multiply md:right-[calc(100%-28px)] md:top-1/2 md:-translate-y-1/2 dark:mix-blend-normal">
+                <Stamp
+                  className="w-[96px] md:w-[148px]"
+                  word="Paid"
+                  ring={`PAID IN FULL / INVOICE ${s.id} / ${status.settledAt === null ? "" : formatDate(status.settledAt).toUpperCase()} / `}
+                  label={`Paid in full, invoice ${s.id}${status.settledAt === null ? "" : `, ${formatDate(status.settledAt)}`}`}
+                />
+              </span>
+            ) : status.phase === "part-paid" ? (
+              <span className="pointer-events-none absolute right-0 top-[calc(100%+4px)] mix-blend-multiply md:right-[calc(100%-20px)] md:top-1/2 md:-translate-y-1/2 dark:mix-blend-normal">
+                <Stamp
+                  className="w-[88px] md:w-[112px]"
+                  word="Part paid"
+                  land={false}
+                  ring={`PART PAID / ${formatAmount(status.received)} OF ${formatAmount(BigInt(s.amount))} / `}
+                  label={`Part paid, ${formatAmount(status.received)} of ${formatAmount(BigInt(s.amount))}`}
+                />
+              </span>
+            ) : null}
           </span>
         </div>
-        {status.phase === "settled" ? (
-          <div className="pointer-events-none absolute right-1 top-[54px] mix-blend-multiply md:right-auto md:left-[34%] md:top-[-14px] dark:mix-blend-normal">
-            <Stamp
-              className="w-[120px] md:w-[148px]"
-              word="Paid"
-              ring={`PAID IN FULL / INVOICE ${s.id} / ${status.settledAt === null ? "" : formatDate(status.settledAt).toUpperCase()} / `}
-              label={`Paid in full, invoice ${s.id}${status.settledAt === null ? "" : `, ${formatDate(status.settledAt)}`}`}
-            />
-          </div>
-        ) : status.phase === "part-paid" ? (
-          <div className="pointer-events-none absolute right-1 top-[50px] mix-blend-multiply md:right-auto md:left-[36%] md:top-[-18px] dark:mix-blend-normal">
-            <Stamp
-              className="w-[100px] md:w-[112px]"
-              word="Part paid"
-              land={false}
-              ring={`PART PAID / ${formatAmount(status.received)} OF ${formatAmount(BigInt(s.amount))} / `}
-              label={`Part paid, ${formatAmount(status.received)} of ${formatAmount(BigInt(s.amount))}`}
-            />
-          </div>
-        ) : null}
       </div>
 
       {voided ? (
         <>
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 bottom-[88px]">
             <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true">
               <line
                 x1="4"
@@ -256,17 +278,7 @@ function Panel({ data, status }: { data: Ok; status: DerivedStatus }) {
       </div>
     );
   }
-  switch (status.phase) {
-    case "settled":
-      return <SettledPanel s={s} status={status} />;
-    case "payment-seen":
-      return <SeenPanel s={s} status={status} />;
-    case "expired":
-    case "cancelled":
-      return <ClosedPanel s={s} status={status} />;
-    default:
-      return <PayPanel data={data} status={status} />;
-  }
+  return <PayPanel data={data} status={status} />;
 }
 
 function PayPanel({ data, status }: { data: Ok; status: DerivedStatus }) {
@@ -296,9 +308,7 @@ function PayPanel({ data, status }: { data: Ok; status: DerivedStatus }) {
 
       {status.flagged.length > 0 ? (
         <div className="callout" role="note">
-          <p className="m-0 text-[17px] font-bold leading-7">
-            A transfer in a token this invoice does not take arrived
-          </p>
+          <p className="m-0 text-[17px] font-bold leading-7">Wrong token received, not counted</p>
           <p className="t-small m-0 mt-1 text-ink-2">
             It is flagged in the ledger and not counted. It stays at the pay address until the owner returns it, so
             nothing is lost. This invoice takes USDC only.
@@ -320,7 +330,7 @@ function PayPanel({ data, status }: { data: Ok; status: DerivedStatus }) {
       </div>
 
       {qr === undefined ? null : (
-        <div className="grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
+        <div className="grid justify-items-center gap-5 sm:grid-cols-[200px_1fr] sm:items-start sm:justify-items-stretch">
           <div
             className="h-[200px] w-[200px] overflow-hidden rounded-[3px] border border-rule-strong [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
             role="img"
@@ -334,8 +344,9 @@ function PayPanel({ data, status }: { data: Ok; status: DerivedStatus }) {
               Scan with a wallet that reads payment links. It fills in USDC on {chainName(qr.chainId)}, this address and
               the exact amount.
             </p>
-            <p className="m-0 mt-3 text-red">
-              Send USDC on {chain?.name ?? chainName(chainId)} only. Any other token is flagged, not counted.
+            <p className="m-0 mt-3 text-ink">
+              Send <span className="font-bold">USDC on {chain?.name ?? chainName(chainId)}</span> only. Any other token
+              is flagged, not counted.
             </p>
           </div>
         </div>
@@ -346,47 +357,39 @@ function PayPanel({ data, status }: { data: Ok; status: DerivedStatus }) {
   );
 }
 
-function SeenPanel({ s, status }: { s: InvoiceSnapshot; status: DerivedStatus }) {
+/** The one-line verdict once the invoice is paid or closed. Only Paid is set at display size. */
+function Verdict({ s, status }: { s: InvoiceSnapshot; status: DerivedStatus }) {
   const p = status.stations[0];
-  return (
-    <div className="flex flex-col gap-6">
+  if (status.phase === "settled") {
+    return (
       <div>
-        <h2 className="t-display m-0">Payment seen</h2>
+        <h2 className="t-display m-0 text-red">Paid</h2>
         <p className="mt-4 max-w-[30em] text-[17px] leading-7 text-ink-2">
+          {formatAmount(BigInt(s.amount))} USDC on {p.place}
+          {status.loopMs === null ? "" : `, settled ${formatElapsed(status.loopMs).slice(1)} after your transfer`}
+          {status.settledAt === null ? "" : `. Settled ${formatDateTime(status.settledAt)}`}.
+        </p>
+      </div>
+    );
+  }
+  if (status.phase === "payment-seen") {
+    return (
+      <div>
+        <h2 className="t-section m-0">Payment seen</h2>
+        <p className="mt-3 max-w-[30em] text-[17px] leading-7 text-ink-2">
           {formatAmount(status.received)} USDC arrived on {p.place}
           {p.at === null ? "" : ` at ${formatTime(p.at)} UTC`}. The contract has asked the till to sweep it, split it
           and issue your receipt. This page stamps Paid when that settlement is confirmed on chain.
         </p>
       </div>
-      <StatusSlip status={status} invoiceId={s.id} />
-    </div>
-  );
-}
-
-function SettledPanel({ s, status }: { s: InvoiceSnapshot; status: DerivedStatus }) {
-  const pay = status.stations[0];
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="t-display m-0 text-red">Paid</h2>
-        <p className="mt-4 max-w-[30em] text-[17px] leading-7 text-ink-2">
-          {formatAmount(BigInt(s.amount))} USDC on {pay.place}
-          {status.loopMs === null ? "" : `, settled ${formatElapsed(status.loopMs).slice(1)} after your transfer`}
-          {status.settledAt === null ? "" : `. Settled ${formatDateTime(status.settledAt)}`}.
-        </p>
-      </div>
-      <StatusSlip status={status} invoiceId={s.id} />
-    </div>
-  );
-}
-
-function ClosedPanel({ s, status }: { s: InvoiceSnapshot; status: DerivedStatus }) {
+    );
+  }
   const expired = status.phase === "expired";
   return (
-    <div className="flex flex-col gap-6">
-      <div className="callout">
-        <h2 className="t-display m-0 text-red">{expired ? "Expired" : "Cancelled"}</h2>
-        <p className="mt-4 max-w-[30em] text-[17px] leading-7 text-ink">
+    <div>
+      <h2 className="t-display m-0 text-red">{expired ? "Expired" : "Cancelled"}</h2>
+      <div className="callout mt-5">
+        <p className="m-0 max-w-[30em] text-[17px] leading-7 text-ink">
           Do not send money to this invoice.{" "}
           {expired && s.expiresAt !== null ? `It closed on ${formatDate(s.expiresAt)}. ` : ""}
           Anything sent to its address now is recorded as orphaned and forwarded to the owner&rsquo;s treasury, not
@@ -398,7 +401,6 @@ function ClosedPanel({ s, status }: { s: InvoiceSnapshot; status: DerivedStatus 
           </p>
         ) : null}
       </div>
-      <StatusSlip status={status} invoiceId={s.id} />
     </div>
   );
 }
