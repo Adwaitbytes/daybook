@@ -2,6 +2,14 @@
 
 What Daybook does not protect against, or protects against only partly, and why. Items marked with a review id come from docs/SECURITY_REVIEW.md.
 
+## Scope and trust
+
+- **Testnet only.** Daybook runs on Reactive Lasna, Base Sepolia and Unichain Sepolia with Circle's test USDC. I have no mainnet funds for it right now, so there is no mainnet deployment, no real money has gone through it and there is no mainnet running history. Every cost in the docs is in lREACT and testnet ETH.
+- **Amounts are public.** Invoice amounts, pay addresses, accepted tokens, payers, ledger entries and the split policy (treasury, tax share, team addresses and shares) are on chain for anyone to read. Client names and notes stay off chain in Postgres; the chain holds only their keccak256 hash.
+- **Trust in Reactive.** Settlement depends on Reactive Network delivering each payment log once it is final on the origin chain, running the reaction and relaying the callback through each chain's callback proxy. If Reactive stops or misses a log, the money stays at the pay address, which only the till can sweep; the owner can sweep it by hand (`DaybookTill.sweep`) and record a missed transfer (`recordMissedTransfer`), but nothing settles on its own.
+- **Unaudited contracts, with caps.** The contracts had an internal adversarial review (docs/SECURITY_REVIEW.md) and no external audit. Each till refuses a settlement above its per-token cap (20 USDC on both payment chains) and the reactive contract refuses an invoice above `maxInvoiceAmount` (20 USDC). Each till can be paused; the owner sweep still works while paused. Nothing is upgradeable.
+- **The REACT balance runs out.** Every reaction is paid from the reactive contract's lREACT balance. When it is spent the contract goes into debt at the system contract and Reactive stops delivering to it, so payments are not recorded and nothing settles until someone clears the debt (a `depositTo` on the system contract settles it directly, or a top-up followed by `coverDebt()`); transfers made in the meantime would have to be recorded with `recordMissedTransfer`. The Health page shows the balance, any debt and how many reactions the balance still pays for at the measured mean cost.
+
 ## Accepted on purpose
 
 - **Spam with real tokens (H-1 residual).** Accepted-token watching (the default) only reacts to logs from the accepted token contracts. Someone willing to send real 1-unit USDC transfers to a public pay address still triggers one billed reaction each (about 30k gas plus 0.000001 USDC on their side against about 0.04 REACT on ours). Nothing in `react()` can refuse a matching log. The defence is operational: watch `runway()` and the reaction rate on the health page and top up or pause invoice creation if it spikes.

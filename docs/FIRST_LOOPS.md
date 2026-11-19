@@ -52,7 +52,7 @@ Clocks:
 | v0-L1 | 1,000 ms (5 Base blocks) | Base ms | 1 s | 1 |
 | v1-L1 | 1,400 ms (7 blocks) | Base ms | 1 s | 1 |
 | v1-L2 | 1,800 ms (9 blocks) | Base ms | 1 s | 1 |
-| v1-L3 | 1,200 ms (6 blocks) | Base ms | 2 s | 2 |
+| v1-L3 | 1,200 ms (6 blocks) | Base ms | 2 s | 1 |
 | v1-L4 | 1,000 ms (5 blocks) | Base ms | 1 s | 1 |
 | v1-L5 seq 6 (Unichain payment → Unichain callback) | 2 s | Unichain s (±1 s) | 2 s | 2 |
 | v1-L5 seq 5 (Unichain payment → Base callback) | 1.6 s raw | mixed (±1 s plus skew) | 1 s | 1 |
