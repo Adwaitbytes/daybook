@@ -3,7 +3,7 @@
 out/
 cache/
 node_modules/
-broadcast/*/31337/
+broadcast/
 .DS_Store
 dist/
 *.log
