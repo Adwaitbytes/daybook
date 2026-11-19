@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice 0042, part paid, Daybook</title>
+<link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/courier-prime-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-chain="arbitrum">
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap mast on-board">
+  <a class="wordmark" href="index.html" aria-label="Daybook home"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M1 1h20v21l-2.5 2.5L16 22l-2.5 2.5L11 22l-2.5 2.5L6 22l-2.5 2.5L1 22z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 7h12M5 11h12M5 15h7" stroke="currentColor" stroke-width="1.6"/></svg>Daybook</a>
+  <a class="btn outline" href="pay.html">See the paid example</a>
+</header>
+<div class="wrap strip"><span class="tag-sample">sample values</span> Amounts, hashes and times are placeholders until real loops are recorded.</div>
+<main id="main" class="wrap pay">
+  <div class="pad play" data-stamp-host>
+    <div class="under" aria-hidden="true"></div>
+    <article class="sheet" aria-labelledby="inv">
+      <div class="stub">
+        <div class="no" data-sample>0042</div>
+        <dl>
+          <dt>Issued</dt><dd class="typed" data-sample>19.11.26</dd>
+          <dt>Due</dt><dd class="typed" data-sample>03.12.26</dd>
+          <dt>To</dt><dd class="typed" data-sample>Sample client</dd>
+          <dt>USDC</dt><dd class="typed" data-sample>480.00</dd>
+        </dl>
+      </div>
+      <div class="perf" aria-hidden="true"></div>
+      <div class="body">
+        <div class="form-head"><h1 id="inv">Invoice</h1><span class="no" data-sample>No. 0042</span></div>
+        <div class="line"><span class="lbl">From</span><span class="fill typed">Aarambh Labs</span></div>
+        <div class="line"><span class="lbl">For</span><span class="fill typed" data-sample>Sample line items, design and build, hosting</span></div>
+        <div class="boxes">
+          <div class="box"><div class="lbl">Invoice total, USDC</div><div class="v" data-sample>480.00</div></div>
+          <div class="box"><div class="lbl">Balance due, USDC</div><div class="v" data-sample>280.00</div></div>
+        </div>
+        <div data-when-unpaid>
+          <div class="line" style="margin-top:18px"><span class="lbl" id="cl">Paying on</span><span></span></div>
+          <div class="chains" role="group" aria-labelledby="cl"><button type="button" data-chain="base" aria-pressed="true">Base</button><button type="button" data-chain="arbitrum" aria-pressed="false">Arbitrum</button></div>
+          <div class="line"><span class="lbl">Send USDC on <span data-chain-name>Base</span> to</span><span></span></div>
+          <div class="addr-row"><div class="addr" id="addr">0x21fad6bcBF1Cb76f20a406534879624884017736</div><button class="btn outline" type="button" id="copy">Copy</button></div>
+          <div class="qr-row"><div class="qr" id="qr"></div><div><p class="qr-note">Same address on every supported chain. Any wallet or exchange, nothing to connect. Paying in parts is fine.</p><p class="warn">Sample address from the local test vector. Do not send funds to it.</p></div></div>
+        </div>
+        <div class="dater land" style="right: 4%; top: 40%; --sd: 120ms"><svg viewBox="0 0 196 112" role="img" aria-label="Part paid stamp, 2 December 2026"><rect x="3" y="3" width="190" height="106" rx="50" fill="none" stroke="currentColor" stroke-width="5"/><rect x="11" y="11" width="174" height="90" rx="42" fill="none" stroke="currentColor" stroke-width="1.5"/><text class="big" x="98" y="50" text-anchor="middle" fill="currentColor">PART PAID</text><path d="M26 60h144M26 86h144" stroke="currentColor" stroke-width="1.5"/><text class="date" x="98" y="79" text-anchor="middle" fill="currentColor">2 DEC 2026</text></svg></div>
+      </div>
+    </article>
+  </div>
+
+  <div>
+    <section class="log status" id="status" aria-labelledby="logt">
+      <div class="in">
+        <h2 id="logt">Part paid</h2>
+        <p class="sub">Pay the rest on any supported chain, to the same address. It settles when the total is covered.</p>
+        <ol>
+          <li data-step="0" data-fixed="done"><span class="mark" aria-hidden="true"></span><span class="what"><span data-sample>200.00</span> USDC received on Arbitrum</span><span class="t" data-sample>2 Dec 10:14</span></li>
+          <li data-step="0" data-fixed="done"><span class="mark" aria-hidden="true"></span><span class="what">Counted toward invoice 0042, <span data-sample>280.00</span> left</span><span class="t" data-sample>2 Dec 10:14</span></li>
+          <li data-step="1"><span class="mark" aria-hidden="true"></span><span class="what">Waiting for the remaining <span data-sample>280.00</span> on any chain</span><span class="t" hidden></span></li>
+        </ol>
+        <p class="vh" id="live" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="qr.js"></script>
+<script src="pay.js"></script>
+</body>
+</html>

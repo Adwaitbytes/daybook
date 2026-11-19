@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice 0042 expired, Daybook</title>
+<link rel="preload" href="fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-chain="base">
+<a class="skip" href="#main">Skip to payment</a>
+<header class="mast wrap">
+  <div class="grid">
+    <a class="wordmark" href="index.html" aria-label="daybook home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M0 0h15l7 7v15H0z" fill="currentColor"/><path d="M15 0v7h7" fill="none" stroke="var(--stock)" stroke-width="1.5"/><path d="M4 12h9M4 16h14" stroke="var(--stock)" stroke-width="1.5"/></svg>daybook</a>
+    <div class="tagline">Pay page for invoice <span class="num">0042</span><br>No wallet connection needed</div>
+    <nav class="nav" aria-label="Page"><a class="btn line" href="pay.html">See a paid invoice</a></nav>
+  </div>
+</header>
+<div class="wrap note-strip"><span class="tag-sample">sample values</span>&ensp;Amounts, hashes and times are placeholders until real loops are recorded.</div>
+
+<main id="main" class="pay wrap">
+  <div class="grid">
+    <div class="doc">
+      <div class="card-zone" style="margin:0">
+        <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+        <article class="card" data-stamp-host aria-labelledby="inv">
+          <div class="void" aria-hidden="true"></div>
+          <div class="grid">
+            <h1 id="inv">Invoice</h1>
+            <div class="no">No. <span class="num" data-sample>0042</span><br>Issued <span class="num" data-sample>19 Nov 2026</span><br>Due <span class="num" data-sample>3 Dec 2026</span></div>
+            <dl class="parties"><div><dt>From</dt><dd>Aarambh Labs</dd></div><div><dt>To</dt><dd data-sample>Sample client</dd></div></dl>
+            <table class="t">
+              <thead><tr><th>Description</th><th class="r">USDC</th></tr></thead>
+              <tbody>
+                <tr><td data-sample>Sample line item, design and build work</td><td class="r num" data-sample>400.00</td></tr>
+                <tr><td data-sample>Sample line item, hosting for one quarter</td><td class="r num" data-sample>80.00</td></tr>
+              </tbody>
+            </table>
+            <div class="total"><span class="lbl">Expired, nothing due</span><span class="amt num" data-sample>480.00</span></div>
+          </div>
+          <div class="seal-at" data-when-paid hidden style="left: 13%; right: auto; top: auto; bottom: 5%;"><div class="seal press" style="--d: 100ms"><svg viewBox="0 0 168 168" role="img" aria-label="Paid seal, 19 November 2026"><defs><path id="ring-s2" d="M84,84 m-61,0 a61,61 0 1,1 122,0 a61,61 0 1,1 -122,0"/></defs><circle cx="84" cy="84" r="81" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="84" cy="84" r="74" fill="none" stroke="currentColor" stroke-width="0.75"/><circle cx="84" cy="84" r="47" fill="none" stroke="currentColor" stroke-width="0.75"/><text class="ring" fill="currentColor"><textPath href="#ring-s2" textLength="352" lengthAdjust="spacing">PAID IN FULL / INVOICE 0042 / 19 NOV 2026</textPath></text><text class="face" x="84" y="96" text-anchor="middle" fill="currentColor">Paid</text></svg></div></div>
+        </article>
+      </div>
+    </div>
+
+    <section class="side" aria-label="Payment">
+      <div class="alert" role="status"><h2>This invoice has expired</h2><p>It stopped taking payments on <span class="num" data-sample>3 Dec 2026</span>. Please do not send money to its address now: a late payment is recorded and passed on to Aarambh Labs, but it will not mark anything paid. Ask for a new invoice instead.</p></div>
+      <div class="stepk status" id="status"><span class="k">&nbsp;</span><div><div class="lbl">Ledger for this invoice</div><ol>
+        <li data-step="1" data-fixed="flag"><span class="mark" aria-hidden="true"></span><span class="what">Expired with nothing received</span><span class="t" data-sample>3 Dec, 00:00</span></li>
+        <li data-step="2" data-fixed="done"><span class="mark" aria-hidden="true"></span><span class="what">Stopped watching Base and Arbitrum</span><span class="t" data-sample>3 Dec, 00:00</span></li>
+      </ol><p class="vh" id="live" aria-live="polite"></p></div></div>
+      <div class="actions" style="margin-top:28px"><a class="btn" href="#">Ask for a new invoice</a></div>
+    </section>
+  </div>
+</main>
+<script src="qr.js"></script>
+<script src="pay.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybook, invoices that mark themselves paid</title>
+<meta name="description" content="A client pays in USDC on any supported chain. One reactive contract matches the payment, issues a receipt, sets tax aside and pays the team.">
+<link rel="preload" href="fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="mast wrap">
+  <div class="grid">
+    <a class="wordmark" href="index.html" aria-label="daybook home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M0 0h15l7 7v15H0z" fill="currentColor"/><path d="M15 0v7h7" fill="none" stroke="var(--stock)" stroke-width="1.5"/><path d="M4 12h9M4 16h14" stroke="var(--stock)" stroke-width="1.5"/></svg>daybook</a>
+    <div class="tagline">Invoices paid in USDC, settled on chain<br>by one contract on Reactive Network</div>
+    <nav class="nav" aria-label="Main"><a href="pay.html">Pay page</a><a href="#loop">Settlement</a><a href="#rules">Rules</a><a href="#health">Health</a></nav>
+  </div>
+</header>
+
+<main id="main" class="play">
+  <section class="hero wrap">
+    <div class="grid">
+      <h1>Invoices that mark themselves paid</h1>
+      <div class="side">
+        <p>Send a client one address. They pay in USDC on Base or Arbitrum, from any wallet. A contract matches the payment, sweeps it, puts the tax aside, pays the team and sends a receipt. Nothing of ours has to be running.</p>
+        <div class="ctas"><a class="btn" href="#">Write an invoice</a><a class="btn line" href="pay.html">Open a pay page</a></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="card-zone">
+      <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+      <div class="card">
+        <div class="grid">
+          <dl class="meta">
+            <dt>Invoice</dt><dd class="num" data-sample>0042</dd>
+            <dt>From</dt><dd>Aarambh Labs</dd>
+            <dt>To</dt><dd data-sample>Sample client</dd>
+            <dt>Settled</dt><dd class="num" data-sample>19 Nov 2026, 14:02:21</dd>
+            <dt>&nbsp;</dt><dd><span class="tag-sample">sample values</span></dd>
+          </dl>
+          <div class="figure">
+            <div class="lbl">Received and split</div>
+            <div class="amt" data-sample>480.00</div>
+            <div class="cur">USDC on Base</div>
+          </div>
+          <div class="seal-slot"><div class="seal press" style="--d: 2500ms"><svg viewBox="0 0 168 168" role="img" aria-label="Paid seal, 19 November 2026"><defs><path id="ring-s1" d="M84,84 m-61,0 a61,61 0 1,1 122,0 a61,61 0 1,1 -122,0"/></defs><circle cx="84" cy="84" r="81" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="84" cy="84" r="74" fill="none" stroke="currentColor" stroke-width="0.75"/><circle cx="84" cy="84" r="47" fill="none" stroke="currentColor" stroke-width="0.75"/><text class="ring" fill="currentColor"><textPath href="#ring-s1" textLength="352" lengthAdjust="spacing">PAID IN FULL / INVOICE 0042 / 19 NOV 2026</textPath></text><text class="face" x="84" y="96" text-anchor="middle" fill="currentColor">Paid</text></svg></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="track wrap" id="loop" aria-label="The three transactions behind every settled invoice">
+    <div class="grid">
+      <ol>
+        <li class="lit" style="--i:0"><div class="k"><span>Base</span><span data-sample>14:02:07</span></div><h3>Payment</h3><p>The client sends USDC to the pay address. It is the same address on every supported chain and has no code until it is swept.</p></li>
+        <li class="lit" style="--i:1"><div class="k"><span>Reactive Network</span><span data-sample>14:02:13</span></div><h3>Match</h3><p>DaybookReactive sees the transfer, records it, handles part and over payment, and when the invoice is covered asks Base to settle.</p></li>
+        <li class="lit" style="--i:2"><div class="k"><span>Base</span><span data-sample>14:02:21</span></div><h3>Settlement</h3><p>DaybookTill sweeps the address, sends the tax share to a savings vault, pays the team, sends the rest to the treasury and attests the receipt.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sect wrap" id="rules">
+    <div class="grid">
+      <h2>One policy per invoice</h2>
+      <div class="body">
+        <p>A split policy cannot change after it is created. Up to five team members; tax and team shares together are at most 100%. Whatever is left goes to the treasury.</p>
+        <table class="t">
+          <thead><tr><th>Goes to</th><th>Address</th><th class="r">Share <span class="tag-sample">sample</span></th></tr></thead>
+          <tbody>
+            <tr><td>Tax reserve</td><td class="num" data-sample>0x2b8f…71c4</td><td class="r num" data-sample>20.00%</td></tr>
+            <tr><td>Team</td><td class="num" data-sample>0x51d0…09ab</td><td class="r num" data-sample>25.00%</td></tr>
+            <tr><td>Team</td><td class="num" data-sample>0x9e44…c2d1</td><td class="r num" data-sample>15.00%</td></tr>
+            <tr><td>Treasury</td><td class="num" data-sample>0x0c1e…a6d2</td><td class="r num" data-sample>40.00%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sect wrap" id="health">
+    <div class="grid">
+      <h2>Still running</h2>
+      <div class="body">
+        <p>Read from chain data, not from our database. Filled from <span class="num">evidence/loops.csv</span> once mainnet loops are recorded.</p>
+        <table class="t">
+          <tbody>
+            <tr><td>Running since</td><td class="r num" data-sample>21 Nov 2026</td></tr>
+            <tr><td>Invoices settled</td><td class="r num" data-sample>0</td></tr>
+            <tr><td>REACT spent</td><td class="r num" data-sample>0.0000</td></tr>
+            <tr><td>Last loop, transfer to settled</td><td class="r num" data-sample>n/a</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="foot wrap"><div class="grid"><span>daybook, MIT licensed. Unaudited contracts with a cap per invoice.</span><span>Built on Reactive Network</span></div></footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice 0042 from Aarambh Labs, Daybook</title>
+<link rel="preload" href="fonts/libre-caslon-text-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/dm-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-chain="base">
+<a class="skip" href="#main">Skip to payment</a>
+<header class="mast">
+  <div class="mast-in">
+    <a class="wordmark" href="index.html" aria-label="Daybook home">
+      <svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true"><rect x="0.5" y="0.5" width="25" height="29" rx="1.5" fill="none" stroke="currentColor"/><path d="M6 1v28M8.5 1v28" stroke="var(--red)"/><path d="M8.5 9.5h17M8.5 15.5h17M8.5 21.5h17" stroke="currentColor" stroke-opacity=".35"/><path d="M13 18.5l3 3 6-8" fill="none" stroke="var(--red)" stroke-width="1.6"/></svg>
+      <span style="font: italic 400 24px/1 var(--serif); letter-spacing: -0.01em;">Daybook</span>
+    </a>
+    <button class="btn ghost" type="button" data-replay>Replay<span class="hide-sm"> the settlement</span></button>
+  </div>
+</header>
+<div class="banner no-print"><span class="tag-sample">sample values</span> Amounts, hashes and times on this page are placeholders until real loops are recorded.</div>
+
+<main id="main" class="pay">
+  <article class="invoice sheet sheet-pad" data-stamp-host aria-labelledby="inv-title">
+    <div class="head">
+      <h1 id="inv-title">Invoice</h1>
+      <div class="no">No. <span class="num" data-sample>0042</span><br>Issued <span class="num" data-sample>19 Nov 2026</span><br>Due <span class="num" data-sample>3 Dec 2026</span></div>
+    </div>
+    <dl class="parties">
+      <div><dt>From</dt><dd>Aarambh Labs</dd></div>
+      <div><dt>To</dt><dd data-sample>Sample client</dd></div>
+    </dl>
+    <table class="ledger">
+      <thead><tr><th>Description</th><th class="col-amt">USDC</th></tr></thead>
+      <tbody>
+        <tr><td class="part" data-sample>Sample line item, design and build work</td><td class="col-amt num" data-sample>400.00</td></tr>
+        <tr><td class="part" data-sample>Sample line item, hosting for one quarter</td><td class="col-amt num" data-sample>80.00</td></tr>
+        <tr><td>&nbsp;</td><td class="col-amt"></td></tr>
+      </tbody>
+    </table>
+    <div class="amount-due">
+      <span class="label">Amount due</span>
+      <span class="big num" data-sample>480.00<span class="unit">USDC</span></span>
+    </div>
+    <div class="stamp land" style="left: 26%; bottom: 96px; --stamp-delay: 120ms;" data-when-paid hidden>PAID<small data-sample>19 NOV 2026</small></div>
+  </article>
+
+  <section class="panel" aria-labelledby="pay-title">
+    <div data-when-unpaid>
+      <h2 id="pay-title">Pay with USDC</h2>
+      <span class="field-label" id="chain-label">Choose the chain you will send from</span>
+      <div class="chains" role="group" aria-labelledby="chain-label">
+        <button type="button" data-chain="base" aria-pressed="true">Base</button>
+        <button type="button" data-chain="arbitrum" aria-pressed="false">Arbitrum</button>
+      </div>
+      <span class="field-label">Send exactly <span class="num" style="font-style:normal;color:var(--ink)">480.00 USDC</span> on <span data-chain-name>Base</span> to</span>
+      <div class="addr-row">
+        <div class="addr" id="addr">0x21fad6bcBF1Cb76f20a406534879624884017736</div>
+        <button class="btn ghost copy" type="button" id="copy">Copy</button>
+      </div>
+      <div class="qr-row">
+        <div class="qr" id="qr"></div>
+        <div>
+          <p class="qr-note"><strong>Same address on every chain.</strong> Any wallet or exchange works, no need to connect anything here. Paying in parts is fine; the page keeps count.</p>
+          <p class="warn-sample">Sample address from the local test vector. Do not send funds to it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div data-when-paid hidden>
+      <h2 id="paid-title">Paid in full on Base</h2>
+      <p class="qr-note" style="margin-bottom:var(--s5)"><span class="num" data-sample>480.00</span> USDC received <span class="num" data-sample>19 Nov 2026, 14:02</span>. Your receipt is below and is also attested on chain to the address you paid from.</p>
+    </div>
+    <div class="status" id="status">
+      <ol>
+        <li data-step="1"><span class="mark" aria-hidden="true"></span><span class="what">Waiting for a transfer on <span data-chain-name>Base</span></span><span class="t" hidden></span></li>
+        <li data-step="2"><span class="mark" aria-hidden="true"></span><span class="what">Transfer of <span class="num" data-sample>480.00</span> USDC seen</span><span class="t" data-sample>14:02:07</span></li>
+        <li data-step="3"><span class="mark" aria-hidden="true"></span><span class="what">Matched on Reactive Network, invoice covered</span><span class="t" data-sample>14:02:13</span></li>
+        <li data-step="4"><span class="mark" aria-hidden="true"></span><span class="what">Settled: receipt issued, tax and team paid</span><span class="t" data-sample>14:02:21</span></li>
+      </ol>
+      <p class="sr-only" id="live" aria-live="polite" style="position:absolute;left:-9999px"></p>
+    </div>
+
+    <div class="receipt" data-when-paid hidden>
+      <h2>Receipt <span class="tag-sample">sample values</span></h2>
+      <ol class="txs">
+        <li><span class="n">1</span><span class="what">Your payment</span><span class="where"><span>Base</span><a href="#" data-full="0x8c41d2…sample" data-sample>0x8c41…3e9a</a><span data-sample>block 23,881,204</span></span></li>
+        <li><span class="n">2</span><span class="what">Matched by the Daybook contract</span><span class="where"><span>Reactive Network</span><a href="#" data-full="0x1f07aa…sample" data-sample>0x1f07…b2c5</a></span></li>
+        <li><span class="n">3</span><span class="what">Settled, receipt attested to you</span><span class="where"><span>Base</span><a href="#" data-full="0xd93e50…sample" data-sample>0xd93e…71f8</a><span>EAS</span></span></li>
+      </ol>
+      <div class="actions">
+        <button class="btn" type="button" data-print>Print receipt</button>
+        <a class="btn ghost" href="#">Download PDF</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="qr.js"></script>
+<script src="pay.js"></script>
+</body>
+</html>
