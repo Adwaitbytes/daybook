@@ -3,34 +3,34 @@
   "generatedBy": "make summary (tools/verify/src/summary-cli.ts)",
   "site": "https://daybook-omni.vercel.app",
   "asOf": {
-    "lasnaBlock": "8742565",
-    "lasnaTimeMs": 1795101098000,
-    "lasnaTime": "2026-11-19T15:11:38.000Z",
+    "lasnaBlock": "8744670",
+    "lasnaTimeMs": 1795103359000,
+    "lasnaTime": "2026-11-19T15:49:19.000Z",
     "payment": {
-      "1301": "68248610",
-      "84532": "60895850"
+      "1301": "68250871",
+      "84532": "60907155"
     }
   },
   "loops": {
-    "rows": 12,
+    "rows": 13,
     "byStatus": {
       "trace_error": 1,
-      "closed": 7,
+      "closed": 8,
       "recorded_partial": 2,
       "no_reaction": 1,
       "flagged_no_settlement": 1
     },
-    "payments": 10,
-    "settlementsClosed": 7,
-    "invoicesSettled": 6,
+    "payments": 11,
+    "settlementsClosed": 8,
+    "invoicesSettled": 7,
     "unclosed": 0,
     "wrongTokenNotDelivered": 1,
     "wrongTokenFlagged": 1,
     "deliveriesAboveOne": 0,
-    "receiptsAttested": 6,
+    "receiptsAttested": 7,
     "receiptsFailed": 1,
     "originToCallbackMsBase": {
-      "n": 5,
+      "n": 6,
       "min": 1000,
       "p50": 1200,
       "p90": 1800,
@@ -44,24 +44,24 @@
       "max": 2000
     },
     "reactionToAckMs": {
-      "n": 7,
+      "n": 8,
       "min": 1000,
       "p50": 1000,
       "p90": 2000,
       "max": 2000
     },
     "v1CoverWei": {
-      "n": 4,
+      "n": 5,
       "min": "44265700000000000",
       "max": "52815700000000000"
     },
     "v1AckWei": {
-      "n": 6,
+      "n": 7,
       "min": "16118300000000000",
       "max": "17082800000000000"
     },
     "v1CoverPlusAckWei": {
-      "n": 4,
+      "n": 5,
       "min": "61348500000000000",
       "max": "69898500000000000"
     },
@@ -72,7 +72,7 @@
         "max": "1173344700000"
       },
       "84532": {
-        "n": 5,
+        "n": 6,
         "min": "4241938800000",
         "max": "4467658800000"
       }
@@ -84,7 +84,7 @@
         "max": "644786"
       },
       "84532": {
-        "n": 5,
+        "n": 6,
         "min": "576398",
         "max": "610598"
       }
@@ -607,24 +607,7 @@
         }
       ]
     },
-    "untraced": [
-      {
-        "seq": "7",
-        "invoiceId": "6",
-        "chainId": 84532,
-        "amount": "100000",
-        "excess": "0",
-        "origins": [
-          {
-            "chainId": 84532,
-            "tx": "0x5e613f66d63f8e47b40ed3f1c508d26965a25fd9d31aeb743de6f99571d520bc"
-          }
-        ],
-        "requestTx": "0xa3e59de7a156935a99a10143146b6550f630b7f1832bc0b0750a9dd111b24107",
-        "callbackTx": "0x316d89e2c7d56631494e48ec4d9d3fd5e2f91b30d07778e4b558cb82b30be401",
-        "ackTx": "0x3f8a96be0362443ec93b76cd7784c9bf9816026c321e9d53e8287ea74d67d0d8"
-      }
-    ]
+    "untraced": []
   },
   "contracts": [
     {

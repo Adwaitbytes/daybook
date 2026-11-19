@@ -2,7 +2,7 @@
 
 # Daybook for judges
 
-Ten minutes, four criteria. Each section starts with the fastest way to check it yourself. Chain numbers are as of 19 Nov 2026, 15:11:38 UTC (Lasna block 8,742,565); `make verify` rebuilds all of them from public RPCs.
+Ten minutes, four criteria. Each section starts with the fastest way to check it yourself. Chain numbers are as of 19 Nov 2026, 15:49:19 UTC (Lasna block 8,744,670); `make verify` rebuilds all of them from public RPCs.
 
 Daybook runs on testnets only (Reactive Lasna, Base Sepolia, Unichain Sepolia). I have no mainnet funds for it right now.
 
@@ -18,17 +18,11 @@ Five closed loops from [evidence/loops.csv](evidence/loops.csv), each with its f
 | v1-L4-wrongtoken (seq 4) | Wrong token flagged on a watch-all invoice, then paid | Base Sepolia [`0x8327385f…f542`](https://sepolia.basescan.org/tx/0x8327385fc022ce2c635f1165dd517d34cf071b0519851a40f2178a43f932f542) | [`0xdfbe0f6e…d9a9`](https://lasna.reactscan.net/tx/0xdfbe0f6e81241b752a2277b1b7438fb27a5bb90f51413c374c17821b2a99d9a9) | Base Sepolia [`0x705256eb…43f0`](https://sepolia.basescan.org/tx/0x705256eb739c22e93d881b5943f70de69a2d2e4371b9ac3c1b75558530f443f0) | [`0x298f74b9…a1bb`](https://lasna.reactscan.net/tx/0x298f74b980858ed327db3cd1993b223d2d33a3904cc74dacbc866acb2ce0a1bb) |
 | v1-L5-crosschain (seq 6) | Half on Base, half on Unichain | Unichain Sepolia [`0x18af17f2…0a01`](https://unichain-sepolia.blockscout.com/tx/0x18af17f2a2bd2a37c006bfea8d1d4116d0385d881ea62baafa4258abacd50a01) | [`0x5191b720…5388`](https://lasna.reactscan.net/tx/0x5191b720bd27b724a448736cbce2dbb48143492b87d53825ba2cc5a058235388) | Unichain Sepolia [`0x93ddf108…1b3b`](https://unichain-sepolia.blockscout.com/tx/0x93ddf1089b5a98b48e8871a4e80272dc64d5e59bbfdc9ed1d8f37c0ec6821b3b) | [`0x236705b6…cd77`](https://lasna.reactscan.net/tx/0x236705b6386e382e0c79437c4ff22b8cb4bffdc221d77740e474c5ed8714cd77) |
 
-- 7 settlements closed out of 10 traced payments (12 CSV rows, failures kept). 0 left unclosed; no settlement needed a resend.
-- Payment to callback on Base Sepolia's millisecond clock: median 1.2 s, p90 1.8 s, range 1.0 s to 1.8 s, n = 5.
+- 8 settlements closed out of 11 traced payments (13 CSV rows, failures kept). 0 left unclosed; no settlement needed a resend.
+- Payment to callback on Base Sepolia's millisecond clock: median 1.2 s, p90 1.8 s, range 1.0 s to 1.8 s, n = 6.
 - Each payment was delivered exactly once (0 duplicate deliveries).
 
-Settled through the live demo after the traced runs, read from chain and not yet in loops.csv:
-
-| Invoice | Seq | USDC | Origin transfer | Reactive tx (Lasna) | Callback | Ack (Lasna) |
-|---|---|---|---|---|---|---|
-| 6 | 7 | 0.10 | Base Sepolia [`0x5e613f66…20bc`](https://sepolia.basescan.org/tx/0x5e613f66d63f8e47b40ed3f1c508d26965a25fd9d31aeb743de6f99571d520bc) | [`0xa3e59de7…4107`](https://lasna.reactscan.net/tx/0xa3e59de7a156935a99a10143146b6550f630b7f1832bc0b0750a9dd111b24107) | Base Sepolia [`0x316d89e2…e401`](https://sepolia.basescan.org/tx/0x316d89e2c7d56631494e48ec4d9d3fd5e2f91b30d07778e4b558cb82b30be401) | [`0x3f8a96be…d0d8`](https://lasna.reactscan.net/tx/0x3f8a96be0362443ec93b76cd7784c9bf9816026c321e9d53e8287ea74d67d0d8) |
-
-Check it: open any link above, or run `make verify`, which re-derives every field of every CSV row from receipts and logs and compares it (12 rows).
+Check it: open any link above, or run `make verify`, which re-derives every field of every CSV row from receipts and logs and compares it (13 rows).
 
 ## Integration
 
@@ -83,8 +77,8 @@ Evidence tables, with n:
 
 | Table | n | Where |
 |---|---|---|
-| Loop rows (traced payments and settlements) | 12 | [evidence/loops.csv](evidence/loops.csv) |
-| Closed settlements | 7 | same |
+| Loop rows (traced payments and settlements) | 13 | [evidence/loops.csv](evidence/loops.csv) |
+| Closed settlements | 8 | same |
 | Ledger entries, v1, from chain | 9 | `make verify` |
 | Inflows to v1 pay addresses, from chain | 10 | same |
 | Settlement splits checked | 7 | same |

@@ -147,6 +147,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - run: node --test tools/check-writing.test.mjs
       - run: node tools/check-writing.mjs
+      - name: README and JUDGE.md match the generator (evidence/summary.json)
+        run: node tools/judge/generate.mjs --check
 
   secrets:
     name: secret scan (full history)

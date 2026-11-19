@@ -71,7 +71,7 @@ Lasna fees are the drop in `balance + reserves − debt` of the reactive contrac
 | Wrong-token flag (watch-all) | 223,927 | 0.0263 | 162,991 |
 | Cover, one settlement (incl. cron subscribe) | 398,793 to 469,193 | 0.0443 to 0.0528 | 342,657 to 428,157 |
 | Cover, two settlements on two chains | 536,609 | 0.0600 | 500,397 |
-| Ack (`Settled`; incl. cron unsubscribe) | 118,299 to 123,180 | 0.0161 to 0.0171 | 61,183 to 70,828 |
+| Ack (`Settled`; incl. cron unsubscribe) | 112,262 to 123,180 | 0.0161 to 0.0171 | 61,183 to 70,828 |
 | Probe reaction (counter only) | n/a | 0.0134 | 34,191 |
 
 **Per closed single-chain loop on v1: about 0.083 to 0.093 lREACT** (invoice 0.021 to 0.023, cover 0.044 to 0.053, ack 0.017) **plus 4.24e-6 ETH on Base** (576k to 611k callback gas at 0.006 gwei × 1.1, plus 80k extra gas; the first sweep of each pay address deploys its vault). Unichain callback: 644,786 gas, 1.17e-6 ETH. The cross-chain loop cost 0.0252 + 0.0321 + 0.0600 + 0.0161 + 0.0171 = 0.1506 lREACT plus both destination fees. The MCP's `get_rc_health` assumes about 0.016 lREACT per reaction; real Daybook reactions are 1.6× to 3.75× that.

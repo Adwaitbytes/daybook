@@ -4,7 +4,7 @@
 
 Daybook is an invoice that marks itself paid: the client sends USDC to one address on Base Sepolia or Unichain Sepolia, and a reactive contract on Reactive Network matches the payment, sweeps it, sets tax aside, pays the team split and issues a receipt, with no server of mine involved.
 
-In 7 traced settlements across 6 invoices, every payment that should have closed did close on the first send, with no resend. Measured on Base Sepolia's millisecond block clock, the settlement callback landed a median 1.2 s after the payment (n = 5, range 1.0 s to 1.8 s).
+In 8 traced settlements across 7 invoices, every payment that should have closed did close on the first send, with no resend. Measured on Base Sepolia's millisecond block clock, the settlement callback landed a median 1.2 s after the payment (n = 6, range 1.0 s to 1.8 s).
 
 Daybook runs on testnets only: Reactive Lasna, Base Sepolia and Unichain Sepolia, with Circle's test USDC. I have no mainnet funds for it right now, so there is no mainnet deployment and no real money has gone through it.
 
@@ -12,7 +12,7 @@ Daybook runs on testnets only: Reactive Lasna, Base Sepolia and Unichain Sepolia
 
 - Live site: https://daybook-omni.vercel.app. You can try it without a wallet: press **Pay a demo invoice** on the home page. A demo wallet sends 0.10 test USDC on Base Sepolia to a real demo invoice, and you watch its pay page go from waiting to Paid as the reaction, the settlement callback and the acknowledgement land.
 - Video: coming
-- Health, read from chain as of 19 Nov 2026, 15:11:38 UTC (Lasna block 8,742,565): running since 19 Nov 2026, 6 of 11 invoices settled, 0.5144 lREACT spent on 16 measured reactions. The live numbers are at https://daybook-omni.vercel.app/health.
+- Health, read from chain as of 19 Nov 2026, 15:49:19 UTC (Lasna block 8,744,670): running since 19 Nov 2026, 6 of 11 invoices settled, 0.5144 lREACT spent on 16 measured reactions. The live numbers are at https://daybook-omni.vercel.app/health.
 
 Current deployment (v1). Every contract is verified on Sourcify; the superseded v0 and the unused v1-a are in [docs/DEPLOYMENTS.md](docs/DEPLOYMENTS.md).
 
@@ -83,24 +83,24 @@ The callback landed 1.4 s after the payment on Base's own millisecond clock. Las
 
 ## Evidence and how to reproduce it
 
-From [evidence/loops.csv](evidence/loops.csv), 12 rows written by the loop tracer (`scripts/src/trace`), one per traced payment and settlement, failures kept:
+From [evidence/loops.csv](evidence/loops.csv), 13 rows written by the loop tracer (`scripts/src/trace`), one per traced payment and settlement, failures kept:
 
 | Measure | Value |
 |---|---|
-| Payments traced | 10 |
-| Settlements closed (payment, reaction, callback, ack) | 7 |
-| Invoices settled in the traced loops | 6 |
+| Payments traced | 11 |
+| Settlements closed (payment, reaction, callback, ack) | 8 |
+| Invoices settled in the traced loops | 7 |
 | Settlements left unclosed | 0 |
 | Wrong-token transfers flagged on a watch-all invoice | 1 |
 | Wrong-token transfers not delivered to an accepted-token invoice, as designed | 1 |
 | Payments delivered more than once | 0 |
-| EAS receipts issued / failed | 6 / 1 (the failure is the v0 gas limit the security review predicted) |
-| Payment to callback, Base Sepolia ms clock | median 1.2 s, range 1.0 s to 1.8 s, n = 5 |
-| Reaction to ack on Lasna | 1.0 s to 2.0 s, n = 7 |
-| lREACT per single-chain loop on v1 (cover plus ack) | 0.0613 to 0.0699, n = 4, plus about 0.02 lREACT to create the invoice |
-| Callback fee on Base Sepolia | 0.00000424 ETH to 0.00000447 ETH, n = 5 |
+| EAS receipts issued / failed | 7 / 1 (the failure is the v0 gas limit the security review predicted) |
+| Payment to callback, Base Sepolia ms clock | median 1.2 s, range 1.0 s to 1.8 s, n = 6 |
+| Reaction to ack on Lasna | 1.0 s to 2.0 s, n = 8 |
+| lREACT per single-chain loop on v1 (cover plus ack) | 0.0613 to 0.0699, n = 5, plus about 0.02 lREACT to create the invoice |
+| Callback fee on Base Sepolia | 0.00000424 ETH to 0.00000447 ETH, n = 6 |
 
-From chain, at 19 Nov 2026, 15:11:38 UTC (Lasna block 8,742,565), for the whole v1 deployment including the live demo: 9 ledger entries; 10 transfers into v1 pay addresses on both payment chains: 8 matched to an invoice, 1 flagged as a wrong token, 1 in a token the invoice does not accept and does not watch, so it was never delivered, 0 unaccounted for; 7 settlement splits recomputed from their policies and matched to the transfers in their callbacks; no accepted token left at any settled pay address.
+From chain, at 19 Nov 2026, 15:49:19 UTC (Lasna block 8,744,670), for the whole v1 deployment including the live demo: 9 ledger entries; 10 transfers into v1 pay addresses on both payment chains: 8 matched to an invoice, 1 flagged as a wrong token, 1 in a token the invoice does not accept and does not watch, so it was never delivered, 0 unaccounted for; 7 settlement splits recomputed from their policies and matched to the transfers in their callbacks; no accepted token left at any settled pay address.
 
 | Invoice | Status | Amount | Paid | Ledger entries | Received at the pay address | Swept by callbacks | Accepted token left | Other tokens left (flagged) |
 |---|---|---|---|---|---|---|---|---|

@@ -1,26 +1,26 @@
 {
   "ok": true,
-  "ranAt": "2026-11-19T15:42:58.201Z",
-  "seconds": 704,
-  "fresh": true,
+  "ranAt": "2026-11-19T15:58:22.146Z",
+  "seconds": 163,
+  "fresh": false,
   "summaryAsOf": {
-    "lasnaBlock": "8742565",
-    "lasnaTimeMs": 1795101098000,
-    "lasnaTime": "2026-11-19T15:11:38.000Z",
+    "lasnaBlock": "8744670",
+    "lasnaTimeMs": 1795103359000,
+    "lasnaTime": "2026-11-19T15:49:19.000Z",
     "payment": {
-      "1301": "68248610",
-      "84532": "60895850"
+      "1301": "68250871",
+      "84532": "60907155"
     }
   },
-  "lasnaHead": "8743666",
-  "checks": 1350,
+  "lasnaHead": "8745037",
+  "checks": 1367,
   "mismatches": [],
   "errors": [],
   "sections": [
     {
       "name": "loops.csv",
-      "rows": 12,
-      "checks": 340,
+      "rows": 13,
+      "checks": 371,
       "mismatches": 0,
       "notes": [
         "row 2 v0-L1-exact: trace_error row kept (rows are never dropped); the origin tx is traced again in a later row"
@@ -48,7 +48,7 @@
     {
       "name": "summary.chain",
       "rows": 0,
-      "checks": 259,
+      "checks": 249,
       "mismatches": 0,
       "notes": [],
       "skipped": []
@@ -74,10 +74,10 @@
     {
       "name": "docs",
       "rows": 8,
-      "checks": 177,
+      "checks": 173,
       "mismatches": 0,
       "notes": [
-        "75 distinct transaction hashes linked or tabled in the docs"
+        "71 distinct transaction hashes linked or tabled in the docs"
       ],
       "skipped": []
     },
@@ -334,19 +334,19 @@
   ],
   "rpc": {
     "1301": {
-      "requests": 209,
-      "cacheHits": 0,
+      "requests": 16,
+      "cacheHits": 200,
       "retries": 0
     },
     "84532": {
-      "requests": 2831,
-      "cacheHits": 0,
-      "retries": 16
+      "requests": 16,
+      "cacheHits": 3038,
+      "retries": 0
     },
     "5318007": {
-      "requests": 512,
-      "cacheHits": 0,
-      "retries": 0
+      "requests": 31,
+      "cacheHits": 499,
+      "retries": 1
     }
   }
 }
