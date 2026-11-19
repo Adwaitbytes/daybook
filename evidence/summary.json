@@ -1,0 +1,859 @@
+{
+  "schema": 1,
+  "generatedBy": "make summary (tools/verify/src/summary-cli.ts)",
+  "site": "https://daybook-omni.vercel.app",
+  "asOf": {
+    "lasnaBlock": "8742565",
+    "lasnaTimeMs": 1795101098000,
+    "lasnaTime": "2026-11-19T15:11:38.000Z",
+    "payment": {
+      "1301": "68248610",
+      "84532": "60895850"
+    }
+  },
+  "loops": {
+    "rows": 12,
+    "byStatus": {
+      "trace_error": 1,
+      "closed": 7,
+      "recorded_partial": 2,
+      "no_reaction": 1,
+      "flagged_no_settlement": 1
+    },
+    "payments": 10,
+    "settlementsClosed": 7,
+    "invoicesSettled": 6,
+    "unclosed": 0,
+    "wrongTokenNotDelivered": 1,
+    "wrongTokenFlagged": 1,
+    "deliveriesAboveOne": 0,
+    "receiptsAttested": 6,
+    "receiptsFailed": 1,
+    "originToCallbackMsBase": {
+      "n": 5,
+      "min": 1000,
+      "p50": 1200,
+      "p90": 1800,
+      "max": 1800
+    },
+    "originToCallbackMsUnichain": {
+      "n": 1,
+      "min": 2000,
+      "p50": 2000,
+      "p90": 2000,
+      "max": 2000
+    },
+    "reactionToAckMs": {
+      "n": 7,
+      "min": 1000,
+      "p50": 1000,
+      "p90": 2000,
+      "max": 2000
+    },
+    "v1CoverWei": {
+      "n": 4,
+      "min": "44265700000000000",
+      "max": "52815700000000000"
+    },
+    "v1AckWei": {
+      "n": 6,
+      "min": "16118300000000000",
+      "max": "17082800000000000"
+    },
+    "v1CoverPlusAckWei": {
+      "n": 4,
+      "min": "61348500000000000",
+      "max": "69898500000000000"
+    },
+    "destFeeWei": {
+      "1301": {
+        "n": 1,
+        "min": "1173344700000",
+        "max": "1173344700000"
+      },
+      "84532": {
+        "n": 5,
+        "min": "4241938800000",
+        "max": "4467658800000"
+      }
+    },
+    "callbackGas": {
+      "1301": {
+        "n": 1,
+        "min": "644786",
+        "max": "644786"
+      },
+      "84532": {
+        "n": 5,
+        "min": "576398",
+        "max": "610598"
+      }
+    },
+    "samples": [
+      {
+        "loop": "v1-L1-exact",
+        "deployment": "v1",
+        "invoiceId": "1",
+        "seq": "1",
+        "originChain": 84532,
+        "callbackChain": 84532,
+        "originTx": "0x83f977cbdfafa67375d522af4875de0e09c0a67a75a79923f967e168122aad6b",
+        "reactiveTx": "0xc4088634fc23911523f4416d44aeeb0bfd01f42300825201a7b541cb87fd049e",
+        "callbackTx": "0x5569926add8acec5aaf62de139f33380d89ead0b1fcf9b24c0eb89990af75ede",
+        "ackTx": "0x3793b50209a91d710a38eee163783264aad46e0b7d814c42c8acb3b5617ce2a8",
+        "amountRaw": "1000000",
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "originTsMs": 1795078570600,
+        "reactiveTsMs": 1795078570000,
+        "callbackTsMs": 1795078572000,
+        "ackTsMs": 1795078571000,
+        "reactiveCostWei": "52815700000000000",
+        "ackCostWei": "17082800000000000",
+        "callbackGas": "610598",
+        "destFeeWei": "4467658800000",
+        "originToCallbackMs": 1400,
+        "originClock": "ms",
+        "callbackClock": "ms",
+        "receipt": "Attested(0x31d2f2a04e2e9be762f301543d45c8685fa6557c89dcbc7e7158b5d4d97845ce)",
+        "notes": "invoice 1, 1.00 USDC, exact"
+      },
+      {
+        "loop": "v1-L2-partial",
+        "deployment": "v1",
+        "invoiceId": "2",
+        "seq": "2",
+        "originChain": 84532,
+        "callbackChain": 84532,
+        "originTx": "0x571a746d104a9094419d9f212cdd1b8f99b676d2e95db7f7f2cec25e716fec1d",
+        "reactiveTx": "0x8a15fe1641b05feecb2cd72f28c2628dadbd6bd969b90b43b30036bd8d5df20a",
+        "callbackTx": "0x913205c03661d557038c886d87b5d25bc43a2d1e81931edc5a8e3d78e2de4996",
+        "ackTx": "0xd52269659f059639e38599c18894ab673b6ac8bd0a7cf62a38594911e10fd4d3",
+        "amountRaw": "1250000",
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "originTsMs": 1795079040400,
+        "reactiveTsMs": 1795079040000,
+        "callbackTsMs": 1795079042200,
+        "ackTsMs": 1795079041000,
+        "reactiveCostWei": "44265700000000000",
+        "ackCostWei": "17082800000000000",
+        "callbackGas": "576398",
+        "destFeeWei": "4241938800000",
+        "originToCallbackMs": 1800,
+        "originClock": "ms",
+        "callbackClock": "ms",
+        "receipt": "Attested(0x1025e4b9243cbff0c7e37893a0bd792b91dbb6fdca3f24c10834366af34070f1)",
+        "notes": "invoice 2 completing part 1.25"
+      },
+      {
+        "loop": "v1-L3-overpay",
+        "deployment": "v1",
+        "invoiceId": "3",
+        "seq": "3",
+        "originChain": 84532,
+        "callbackChain": 84532,
+        "originTx": "0xaad6f93363971ee5e74975a971efee11f58eb46819c97d3b111a3a18b29eab48",
+        "reactiveTx": "0x80384b8c31e7580b6ac37748e633e94b5ded062ea7fccc554dccd4d7a2bd41a1",
+        "callbackTx": "0xbd84ab8160ed99b51b5d186ea09549d2bfda8e600334e9770a048334a9066e27",
+        "ackTx": "0xdd8ff73cd88427cdbfc78e6c181b174415234e9982d2a2c556e177d5a767d571",
+        "amountRaw": "1500000",
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "originTsMs": 1795079186600,
+        "reactiveTsMs": 1795079185000,
+        "callbackTsMs": 1795079187800,
+        "ackTsMs": 1795079187000,
+        "reactiveCostWei": "49395700000000000",
+        "ackCostWei": "17082800000000000",
+        "callbackGas": "576434",
+        "destFeeWei": "4241938800000",
+        "originToCallbackMs": 1200,
+        "originClock": "ms",
+        "callbackClock": "ms",
+        "receipt": "Attested(0x030527c598913a8e3b7fa565dad2f76877d7868c56e7a4f08b819db7fefc8a54)",
+        "notes": "invoice 3 (1.00 USDC) paid 1.50"
+      },
+      {
+        "loop": "v1-L4-wrongtoken",
+        "deployment": "v1",
+        "invoiceId": "4",
+        "seq": "4",
+        "originChain": 84532,
+        "callbackChain": 84532,
+        "originTx": "0x8327385fc022ce2c635f1165dd517d34cf071b0519851a40f2178a43f932f542",
+        "reactiveTx": "0xdfbe0f6e81241b752a2277b1b7438fb27a5bb90f51413c374c17821b2a99d9a9",
+        "callbackTx": "0x705256eb739c22e93d881b5943f70de69a2d2e4371b9ac3c1b75558530f443f0",
+        "ackTx": "0x298f74b980858ed327db3cd1993b223d2d33a3904cc74dacbc866acb2ce0a1bb",
+        "amountRaw": "1000000",
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "originTsMs": 1795079416600,
+        "reactiveTsMs": 1795079415000,
+        "callbackTsMs": 1795079417600,
+        "ackTsMs": 1795079416000,
+        "reactiveCostWei": "49360900000000000",
+        "ackCostWei": "17082800000000000",
+        "callbackGas": "576398",
+        "destFeeWei": "4241938800000",
+        "originToCallbackMs": 1000,
+        "originClock": "ms",
+        "callbackClock": "ms",
+        "receipt": "Attested(0xdb27e85732bf2f5750b596745a6c2d1d6419260dd07b8f1a9da67b078dc52667)",
+        "notes": "watch-all invoice 4 closed by exact 1.00 USDC"
+      },
+      {
+        "loop": "v1-L5-crosschain",
+        "deployment": "v1",
+        "invoiceId": "5",
+        "seq": "6",
+        "originChain": 1301,
+        "callbackChain": 1301,
+        "originTx": "0x18af17f2a2bd2a37c006bfea8d1d4116d0385d881ea62baafa4258abacd50a01",
+        "reactiveTx": "0x5191b720bd27b724a448736cbce2dbb48143492b87d53825ba2cc5a058235388",
+        "callbackTx": "0x93ddf1089b5a98b48e8871a4e80272dc64d5e59bbfdc9ed1d8f37c0ec6821b3b",
+        "ackTx": "0x236705b6386e382e0c79437c4ff22b8cb4bffdc221d77740e474c5ed8714cd77",
+        "amountRaw": "1000000",
+        "token": "0x31d0220469e10c4E71834a79b1f276d740d3768F",
+        "originTsMs": 1795079629000,
+        "reactiveTsMs": 1795079628000,
+        "callbackTsMs": 1795079631000,
+        "ackTsMs": 1795079630000,
+        "reactiveCostWei": "60039700000000000",
+        "ackCostWei": "17082800000000000",
+        "callbackGas": "644786",
+        "destFeeWei": "1173344700000",
+        "originToCallbackMs": 2000,
+        "originClock": "s",
+        "callbackClock": "s",
+        "receipt": "Attested(0x4fa260056a77fa003ab5a5658b0b332bf46629c850297f8b55ce950f9d96a2d4)",
+        "notes": "invoice 5 Unichain half 1.00 completes"
+      }
+    ]
+  },
+  "chain": {
+    "health": {
+      "runningSinceMs": 1795078548000,
+      "deployedAtMs": 1795077662000,
+      "invoicesIssued": 11,
+      "invoicesSettled": 6,
+      "invoicesOpen": 5,
+      "reactSpentWei": "514487400000000000",
+      "samples": 16,
+      "reactions": 16
+    },
+    "caps": {
+      "maxInvoiceAmount": "20000000",
+      "maxSettlementUsdc": {
+        "1301": "20000000",
+        "84532": "20000000"
+      }
+    },
+    "v1": {
+      "deployment": "v1",
+      "reactive": "0x182BA62E240433B54136712d8840Ccc354bb78d3",
+      "invoices": {
+        "issued": 11,
+        "settled": 6,
+        "open": 5,
+        "paid": 0,
+        "cancelled": 0,
+        "expired": 0
+      },
+      "entries": 9,
+      "byKind": {
+        "Payment": 8,
+        "Late": 0,
+        "Orphaned": 0,
+        "WrongToken": 1
+      },
+      "inflows": {
+        "total": 10,
+        "matched": 8,
+        "flaggedWrongToken": 1,
+        "unwatchedToken": 1,
+        "afterClose": 0,
+        "zeroValue": 0,
+        "unrecorded": 0
+      },
+      "settlements": {
+        "requested": 7,
+        "resends": 0,
+        "acked": 7,
+        "callbacks": 7,
+        "splitsChecked": 7
+      },
+      "lines": [
+        {
+          "id": "1",
+          "status": "Settled",
+          "amount": "1000000",
+          "paid": "1000000",
+          "entries": 1,
+          "received": "1000000",
+          "settled": "1000000",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "2",
+          "status": "Settled",
+          "amount": "2000000",
+          "paid": "2000000",
+          "entries": 2,
+          "received": "2000000",
+          "settled": "2000000",
+          "leftAccepted": "0",
+          "leftOther": [
+            {
+              "chainId": 84532,
+              "token": "0xBF1Bfc97f7cf822113D41922c92910eAC925Dee7",
+              "raw": "1000000"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "status": "Settled",
+          "amount": "1000000",
+          "paid": "1000000",
+          "entries": 1,
+          "received": "1500000",
+          "settled": "1500000",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "4",
+          "status": "Settled",
+          "amount": "1000000",
+          "paid": "1000000",
+          "entries": 2,
+          "received": "1000000",
+          "settled": "1000000",
+          "leftAccepted": "0",
+          "leftOther": [
+            {
+              "chainId": 84532,
+              "token": "0xBF1Bfc97f7cf822113D41922c92910eAC925Dee7",
+              "raw": "1000000"
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "status": "Settled",
+          "amount": "2000000",
+          "paid": "2000000",
+          "entries": 2,
+          "received": "2000000",
+          "settled": "2000000",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "6",
+          "status": "Settled",
+          "amount": "100000",
+          "paid": "100000",
+          "entries": 1,
+          "received": "100000",
+          "settled": "100000",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "7",
+          "status": "Open",
+          "amount": "100000",
+          "paid": "0",
+          "entries": 0,
+          "received": "0",
+          "settled": "0",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "8",
+          "status": "Open",
+          "amount": "100000",
+          "paid": "0",
+          "entries": 0,
+          "received": "0",
+          "settled": "0",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "9",
+          "status": "Open",
+          "amount": "100000",
+          "paid": "0",
+          "entries": 0,
+          "received": "0",
+          "settled": "0",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "10",
+          "status": "Open",
+          "amount": "100000",
+          "paid": "0",
+          "entries": 0,
+          "received": "0",
+          "settled": "0",
+          "leftAccepted": "0",
+          "leftOther": []
+        },
+        {
+          "id": "11",
+          "status": "Open",
+          "amount": "100000",
+          "paid": "0",
+          "entries": 0,
+          "received": "0",
+          "settled": "0",
+          "leftAccepted": "0",
+          "leftOther": []
+        }
+      ],
+      "loops": [
+        {
+          "seq": "1",
+          "invoiceId": "1",
+          "chainId": 84532,
+          "amount": "1000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0x83f977cbdfafa67375d522af4875de0e09c0a67a75a79923f967e168122aad6b"
+            }
+          ],
+          "requestTx": "0xc4088634fc23911523f4416d44aeeb0bfd01f42300825201a7b541cb87fd049e",
+          "callbackTx": "0x5569926add8acec5aaf62de139f33380d89ead0b1fcf9b24c0eb89990af75ede",
+          "ackTx": "0x3793b50209a91d710a38eee163783264aad46e0b7d814c42c8acb3b5617ce2a8"
+        },
+        {
+          "seq": "2",
+          "invoiceId": "2",
+          "chainId": 84532,
+          "amount": "2000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0xcbae45d5354987f3f9172cc6024fc44527e4a02081395bb02a6c3cad40127714"
+            },
+            {
+              "chainId": 84532,
+              "tx": "0x571a746d104a9094419d9f212cdd1b8f99b676d2e95db7f7f2cec25e716fec1d"
+            }
+          ],
+          "requestTx": "0x8a15fe1641b05feecb2cd72f28c2628dadbd6bd969b90b43b30036bd8d5df20a",
+          "callbackTx": "0x913205c03661d557038c886d87b5d25bc43a2d1e81931edc5a8e3d78e2de4996",
+          "ackTx": "0xd52269659f059639e38599c18894ab673b6ac8bd0a7cf62a38594911e10fd4d3"
+        },
+        {
+          "seq": "3",
+          "invoiceId": "3",
+          "chainId": 84532,
+          "amount": "1000000",
+          "excess": "500000",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0xaad6f93363971ee5e74975a971efee11f58eb46819c97d3b111a3a18b29eab48"
+            }
+          ],
+          "requestTx": "0x80384b8c31e7580b6ac37748e633e94b5ded062ea7fccc554dccd4d7a2bd41a1",
+          "callbackTx": "0xbd84ab8160ed99b51b5d186ea09549d2bfda8e600334e9770a048334a9066e27",
+          "ackTx": "0xdd8ff73cd88427cdbfc78e6c181b174415234e9982d2a2c556e177d5a767d571"
+        },
+        {
+          "seq": "4",
+          "invoiceId": "4",
+          "chainId": 84532,
+          "amount": "1000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0x8327385fc022ce2c635f1165dd517d34cf071b0519851a40f2178a43f932f542"
+            }
+          ],
+          "requestTx": "0xdfbe0f6e81241b752a2277b1b7438fb27a5bb90f51413c374c17821b2a99d9a9",
+          "callbackTx": "0x705256eb739c22e93d881b5943f70de69a2d2e4371b9ac3c1b75558530f443f0",
+          "ackTx": "0x298f74b980858ed327db3cd1993b223d2d33a3904cc74dacbc866acb2ce0a1bb"
+        },
+        {
+          "seq": "5",
+          "invoiceId": "5",
+          "chainId": 84532,
+          "amount": "1000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0xdb1bb8814699f59c02a24d2201e122b108f8fb07116f300669a6f495decf9acd"
+            },
+            {
+              "chainId": 1301,
+              "tx": "0x18af17f2a2bd2a37c006bfea8d1d4116d0385d881ea62baafa4258abacd50a01"
+            }
+          ],
+          "requestTx": "0x5191b720bd27b724a448736cbce2dbb48143492b87d53825ba2cc5a058235388",
+          "callbackTx": "0x91bf8d2cae61e2455852525fc29fd7c76cafae8636d26c87310c13a1cf449698",
+          "ackTx": "0x66930ebf51d2ed7a294a060076fb657d35058d93883dfb4319a682dcc95302bb"
+        },
+        {
+          "seq": "6",
+          "invoiceId": "5",
+          "chainId": 1301,
+          "amount": "1000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0xdb1bb8814699f59c02a24d2201e122b108f8fb07116f300669a6f495decf9acd"
+            },
+            {
+              "chainId": 1301,
+              "tx": "0x18af17f2a2bd2a37c006bfea8d1d4116d0385d881ea62baafa4258abacd50a01"
+            }
+          ],
+          "requestTx": "0x5191b720bd27b724a448736cbce2dbb48143492b87d53825ba2cc5a058235388",
+          "callbackTx": "0x93ddf1089b5a98b48e8871a4e80272dc64d5e59bbfdc9ed1d8f37c0ec6821b3b",
+          "ackTx": "0x236705b6386e382e0c79437c4ff22b8cb4bffdc221d77740e474c5ed8714cd77"
+        },
+        {
+          "seq": "7",
+          "invoiceId": "6",
+          "chainId": 84532,
+          "amount": "100000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0x5e613f66d63f8e47b40ed3f1c508d26965a25fd9d31aeb743de6f99571d520bc"
+            }
+          ],
+          "requestTx": "0xa3e59de7a156935a99a10143146b6550f630b7f1832bc0b0750a9dd111b24107",
+          "callbackTx": "0x316d89e2c7d56631494e48ec4d9d3fd5e2f91b30d07778e4b558cb82b30be401",
+          "ackTx": "0x3f8a96be0362443ec93b76cd7784c9bf9816026c321e9d53e8287ea74d67d0d8"
+        }
+      ]
+    },
+    "v0": {
+      "deployment": "v0",
+      "reactive": "0x16d3b2d6e397B9b047eaec44e3d23ac016f462f0",
+      "invoices": {
+        "issued": 1,
+        "settled": 1,
+        "open": 0,
+        "paid": 0,
+        "cancelled": 0,
+        "expired": 0
+      },
+      "entries": 1,
+      "byKind": {
+        "Payment": 1,
+        "Late": 0,
+        "Orphaned": 0,
+        "WrongToken": 0
+      },
+      "inflows": {
+        "total": 1,
+        "matched": 1,
+        "flaggedWrongToken": 0,
+        "unwatchedToken": 0,
+        "afterClose": 0,
+        "zeroValue": 0,
+        "unrecorded": 0
+      },
+      "settlements": {
+        "requested": 1,
+        "resends": 0,
+        "acked": 1,
+        "callbacks": 1,
+        "splitsChecked": 1
+      },
+      "lines": [
+        {
+          "id": "1",
+          "status": "Settled",
+          "amount": "1000000",
+          "paid": "1000000",
+          "entries": 1,
+          "received": "1000000",
+          "settled": "1000000",
+          "leftAccepted": "0",
+          "leftOther": []
+        }
+      ],
+      "loops": [
+        {
+          "seq": "1",
+          "invoiceId": "1",
+          "chainId": 84532,
+          "amount": "1000000",
+          "excess": "0",
+          "origins": [
+            {
+              "chainId": 84532,
+              "tx": "0xdaf7cf59b3edc7f6840f768ae29131bcbe78ead8fd0f806ad9c37dc211635dfa"
+            }
+          ],
+          "requestTx": "0x1b5eadbcce3bd91d284ebdad7757835078bdc2b1997c71f50c4f5d8c85eaadfe",
+          "callbackTx": "0xe4f04843c67021dba7a23018fd438d6513b715a7a5abf03ad5b451c4e5ee6cfb",
+          "ackTx": "0x7002f16d6165816557785a9fe1441ae0e32ea987b888b9fa0ea3d527ad7de73c"
+        }
+      ]
+    },
+    "untraced": [
+      {
+        "seq": "7",
+        "invoiceId": "6",
+        "chainId": 84532,
+        "amount": "100000",
+        "excess": "0",
+        "origins": [
+          {
+            "chainId": 84532,
+            "tx": "0x5e613f66d63f8e47b40ed3f1c508d26965a25fd9d31aeb743de6f99571d520bc"
+          }
+        ],
+        "requestTx": "0xa3e59de7a156935a99a10143146b6550f630b7f1832bc0b0750a9dd111b24107",
+        "callbackTx": "0x316d89e2c7d56631494e48ec4d9d3fd5e2f91b30d07778e4b558cb82b30be401",
+        "ackTx": "0x3f8a96be0362443ec93b76cd7784c9bf9816026c321e9d53e8287ea74d67d0d8"
+      }
+    ]
+  },
+  "contracts": [
+    {
+      "name": "DaybookReactive",
+      "deployment": "v1",
+      "chainId": 5318007,
+      "address": "0x182BA62E240433B54136712d8840Ccc354bb78d3",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xA7984241CC7596B0ED7C3b71409Bda7cf6E0D33c",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xA7984241CC7596B0ED7C3b71409Bda7cf6E0D33c",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xCDE82FE77A96C255154341A6839cDEfe71f6e348",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xCDE82FE77A96C255154341A6839cDEfe71f6e348",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0x4Bd6fE154dF715608eE3294BB3EcA4028703bba9",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xb444ca6477cc594E35a5676d5f7ABa51E7c5CC26",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xf36c602e30828881A9Aa46782fAB974584807e36",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xAea11aFA4f56f8f7952cE543Ea49421D70d5EFCf",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xc03A2Ce7cc50B940f063eA39FBbFE51bf1750668",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0x0c1eA9879bFEa9Ce280D2bdb1b7755989d2D64aE",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DBKTEST (MockERC20)",
+      "deployment": "fixture",
+      "chainId": 84532,
+      "address": "0xBF1Bfc97f7cf822113D41922c92910eAC925Dee7",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DoubleSubProbe",
+      "deployment": "fixture",
+      "chainId": 5318007,
+      "address": "0x2C10E554FdAb44E2D85407457584b94c3CEebA05",
+      "sourcify": null
+    },
+    {
+      "name": "PayAddressFactory (legacy build)",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xAa4AaE051a408eb6DEB491A1D2523E8d69ED1D04",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xAea11aFA4f56f8f7952cE543Ea49421D70d5EFCf",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xc03A2Ce7cc50B940f063eA39FBbFE51bf1750668",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0x2edc3FC05EcaA02dB18eeF5d5C581E5Be4a3a37D",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "PayAddressFactory (legacy build)",
+      "deployment": "v1-a",
+      "chainId": 1301,
+      "address": "0xAa4AaE051a408eb6DEB491A1D2523E8d69ED1D04",
+      "sourcify": "unstated"
+    },
+    {
+      "name": "DaybookReactive",
+      "deployment": "v0",
+      "chainId": 5318007,
+      "address": "0x16d3b2d6e397B9b047eaec44e3d23ac016f462f0",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x76c0f35aB702D1c457766a4d9afE96dD960852C9",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x76c0f35aB702D1c457766a4d9afE96dD960852C9",
+      "sourcify": null
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x6fe8836e7519bb38ABB5Bcf90C699dA4E72f9D08",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x6fe8836e7519bb38ABB5Bcf90C699dA4E72f9D08",
+      "sourcify": "match"
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0xA4294ae5531Fc2C6d846bD2310cd242eB4e6Bda6",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0xA4294ae5531Fc2C6d846bD2310cd242eB4e6Bda6",
+      "sourcify": null
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0xfAaD47FA1084B2DF56Cc9C64BE416ec9Fb90A5E4",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0xfAaD47FA1084B2DF56Cc9C64BE416ec9Fb90A5E4",
+      "sourcify": null
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x5892a935d509ba8cD848e45a4E8Db4636Ea974Dc",
+      "sourcify": "exact_match"
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x5892a935d509ba8cD848e45a4E8Db4636Ea974Dc",
+      "sourcify": "exact_match"
+    }
+  ],
+  "tests": {
+    "command": "make test",
+    "forge": {
+      "total": 152,
+      "passed": 152,
+      "unit": 142,
+      "fuzz": 9,
+      "invariant": 1,
+      "suites": 15
+    },
+    "web": {
+      "total": 41,
+      "passed": 40,
+      "skipped": 1,
+      "files": 10
+    },
+    "scripts": {
+      "total": 9,
+      "passed": 9
+    },
+    "verify": {
+      "total": 7,
+      "passed": 7
+    }
+  }
+}
