@@ -1,0 +1,47 @@
+{
+  "name": "@daybook/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "gen": "node scripts/gen-abis.mjs && node scripts/gen-deployments.mjs",
+    "test:db": "node --env-file=.env.local node_modules/vitest/vitest.mjs run src/lib/server/db-live.test.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.2.1",
+    "@tanstack/react-query": "5.108.0",
+    "drizzle-orm": "0.45.4",
+    "motion": "14.14.0",
+    "next": "16.4.6",
+    "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "viem": "2.58.1",
+    "wagmi": "3.7.11"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.8",
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "24.10.1",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "playwright": "1.65.1",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3",
+    "vitest": "5.1.1"
+  }
+}

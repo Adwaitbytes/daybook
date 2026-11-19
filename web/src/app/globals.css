@@ -1,0 +1,598 @@
+@import "tailwindcss";
+
+/*
+ * Daybook tokens: direction A (Ledger) revised per design/CRITIQUE.md.
+ * Warm paper page, green kept for the rules, red for the margin rule, flags and the stamp.
+ * Contrast measured (scratch script, WCAG 2.x): light ink/ink-2/ink-3/red/amber on paper 14.46/6.80/5.24/6.47/6.30,
+ * on the carbon copy 14.15/6.65/5.13/6.33/6.17; dark on paper 14.30/8.29/6.00/6.69/7.87. All AA for body text.
+ */
+@theme {
+  --color-paper: var(--paper);
+  --color-band: var(--paper-band);
+  --color-sheet: var(--sheet);
+  --color-copy: var(--sheet-copy);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-red: var(--red);
+  --color-amber: var(--amber);
+  --font-serif: var(--font-caslon), "Iowan Old Style", Georgia, serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --breakpoint-md: 45rem;
+  --breakpoint-lg: 65rem;
+}
+
+:root {
+  --paper: #f3f1e8;
+  --paper-band: #ebe8db;
+  --sheet: #fbfaf5;
+  --sheet-copy: #f4efd6;
+  --rule: #c9d6c3;
+  --rule-strong: #6f8f72;
+  --ink: #18221b;
+  --ink-2: #4a564d;
+  --ink-3: #5b675d;
+  --red: #a3271f;
+  --stamp: #a3271f;
+  --amber: #7a4f00;
+  --focus: #a3271f;
+  --shadow: 0 1px 0 rgb(24 34 27 / 0.05), 0 1px 2px rgb(24 34 27 / 0.04), 0 16px 36px -22px rgb(24 34 27 / 0.32);
+  --serif: var(--font-caslon), "Iowan Old Style", Georgia, serif;
+  --mono: var(--font-dm-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --line: 28px;
+  --gutter: 16px;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: light;
+}
+
+@media (min-width: 45rem) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141b16;
+    --paper-band: #1b241d;
+    --sheet: #1a231c;
+    --sheet-copy: #22261d;
+    --rule: #2b3d2f;
+    --rule-strong: #5b8562;
+    --ink: #e6ead9;
+    --ink-2: #aab6a3;
+    --ink-3: #8e9b88;
+    --red: #ec8274;
+    --stamp: #f08b7e;
+    --amber: #d9a54a;
+    --focus: #ec8274;
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 18px 40px -22px rgb(0 0 0 / 0.85);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #141b16;
+  --paper-band: #1b241d;
+  --sheet: #1a231c;
+  --sheet-copy: #22261d;
+  --rule: #2b3d2f;
+  --rule-strong: #5b8562;
+  --ink: #e6ead9;
+  --ink-2: #aab6a3;
+  --ink-3: #8e9b88;
+  --red: #ec8274;
+  --stamp: #f08b7e;
+  --amber: #d9a54a;
+  --focus: #ec8274;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 18px 40px -22px rgb(0 0 0 / 0.85);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--paper);
+  }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 17px / var(--line) var(--serif);
+    font-feature-settings: "kern", "liga";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  a:hover {
+    text-decoration-color: var(--red);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--red) 22%, transparent);
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 400;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .num,
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.01em;
+  }
+  .wrap {
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  .skip {
+    position: absolute;
+    left: -9999px;
+  }
+  .skip:focus {
+    left: var(--gutter);
+    top: 12px;
+    background: var(--sheet);
+    padding: 8px 12px;
+    z-index: 60;
+  }
+
+  /* Type scale: 13 / 15 / 17 / 20 / 26 / 34 / 48 / 72 / 96 */
+  .t-display {
+    font: 400 clamp(48px, 6.2vw, 96px) / 0.98 var(--serif);
+    letter-spacing: -0.03em;
+  }
+  .t-section {
+    font: 400 clamp(30px, 3.4vw, 40px) / 1.1 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .t-title {
+    font: 400 26px / 1.2 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .t-lede {
+    font-size: 20px;
+    line-height: 31px;
+    color: var(--ink-2);
+  }
+  .t-label {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--ink-2);
+  }
+  .t-colhead {
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .t-small {
+    font-size: 15px;
+    line-height: 24px;
+  }
+  .t-meta {
+    font: 400 13px / 20px var(--mono);
+    color: var(--ink-2);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    font: 400 16px / 1 var(--serif);
+    color: var(--paper);
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background-color 160ms var(--ease-out),
+      color 160ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      transform 120ms var(--ease-out);
+  }
+  .btn:hover {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    background: var(--paper-band);
+    color: var(--ink-3);
+    border-color: var(--rule-strong);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  .btn-ghost:hover {
+    background: var(--paper-band);
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .btn-small {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 15px;
+  }
+
+  /* Sheets: the paper the records are written on */
+  .sheet {
+    position: relative;
+    background: var(--sheet);
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    box-shadow: var(--shadow);
+  }
+  /* The fully ruled page, with the double red margin rule: kept for the hero ledger and the Ledger view. */
+  .sheet-ruled {
+    background-image:
+      linear-gradient(
+        to right,
+        transparent 22px,
+        var(--red) 22px,
+        var(--red) 23px,
+        transparent 23px,
+        transparent 26px,
+        var(--red) 26px,
+        var(--red) 27px,
+        transparent 27px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--line) - 1px),
+        var(--rule) calc(var(--line) - 1px),
+        var(--rule) var(--line)
+      );
+    padding: var(--line) 12px var(--line) 40px;
+  }
+  @media (min-width: 45rem) {
+    .sheet-ruled {
+      background-image:
+        linear-gradient(
+          to right,
+          transparent 46px,
+          var(--red) 46px,
+          var(--red) 47px,
+          transparent 47px,
+          transparent 50px,
+          var(--red) 50px,
+          var(--red) 51px,
+          transparent 51px
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent calc(var(--line) - 1px),
+          var(--rule) calc(var(--line) - 1px),
+          var(--rule) var(--line)
+        );
+      padding: var(--line) 28px var(--line) 76px;
+    }
+  }
+  .sheet-pad {
+    padding: 24px var(--gutter);
+  }
+  @media (min-width: 45rem) {
+    .sheet-pad {
+      padding: 32px 36px;
+    }
+  }
+
+  /* The carbon copy: the day book slip the live status is written on */
+  .slip {
+    position: relative;
+    background: var(--sheet-copy);
+    border: 1px solid color-mix(in srgb, var(--rule-strong) 70%, var(--sheet-copy));
+    border-radius: 2px;
+    box-shadow: var(--shadow);
+    background-image: linear-gradient(
+      to right,
+      transparent 22px,
+      color-mix(in srgb, var(--red) 70%, transparent) 22px,
+      color-mix(in srgb, var(--red) 70%, transparent) 23px,
+      transparent 23px
+    );
+    padding: 16px 14px 14px 36px;
+  }
+  @media (min-width: 45rem) {
+    .slip {
+      background-image: linear-gradient(
+        to right,
+        transparent 30px,
+        color-mix(in srgb, var(--red) 70%, transparent) 30px,
+        color-mix(in srgb, var(--red) 70%, transparent) 31px,
+        transparent 31px
+      );
+      padding: 18px 16px 16px 44px;
+    }
+  }
+
+  /* Ledger table */
+  .ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .ledger th {
+    text-align: left;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-2);
+    font-size: 14px;
+    height: var(--line);
+    padding: 0 8px;
+    border-bottom: 1px solid var(--rule-strong);
+    white-space: nowrap;
+  }
+  .ledger td {
+    height: var(--line);
+    padding: 0 8px;
+    vertical-align: bottom;
+    line-height: var(--line);
+    white-space: nowrap;
+  }
+  .ledger td.wrap-cell {
+    white-space: normal;
+  }
+  .ledger tbody th {
+    border-bottom: 0;
+  }
+  /* On a ruled page every line of text sits on a rule: rows grow in whole lines, never in fractions. */
+  .sheet-ruled .ledger td,
+  .sheet-ruled .ledger tbody th,
+  .sheet-ruled .ledger td .t-meta,
+  .sheet-ruled .ledger tbody th .t-meta {
+    line-height: var(--line);
+    padding-block: 0;
+  }
+  .ledger .col-amt {
+    text-align: right;
+    border-left: 1px solid var(--rule-strong);
+    width: 1%;
+  }
+  .ledger .col-dim {
+    color: var(--ink-2);
+    font-size: 14px;
+  }
+  /* Ruled rows on plain sheets: the invoice is ruled only where it is a table. */
+  .ledger.ruled-rows td {
+    border-bottom: 1px solid var(--rule);
+  }
+  .ledger tr.total td {
+    border-top: 1px solid var(--ink);
+    font-weight: 500;
+  }
+  .ledger tr.total td.col-amt {
+    box-shadow:
+      inset 0 -3px 0 -2px var(--ink),
+      inset 0 -1px 0 var(--ink);
+  }
+
+  .flag {
+    color: var(--red);
+  }
+
+  /* Write-in reveal: a pen crossing the column. Runs once; reduced motion shows the final state. */
+  .ink-row {
+    clip-path: inset(0 100% 0 0);
+    animation: write 520ms var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 360ms + 200ms);
+  }
+  @keyframes write {
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* Pen caret: the live line on the slip. Pulses three times, then stays. */
+  .caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    background: var(--red);
+    vertical-align: -0.15em;
+    margin-left: 4px;
+    animation: pulse 1.6s ease-in-out 3;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  /* Skeleton: empty ruled lines with a pen caret, no shimmer */
+  .skeleton-lines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--line) - 1px),
+      var(--rule) calc(var(--line) - 1px),
+      var(--rule) var(--line)
+    );
+  }
+
+  .tag {
+    display: inline-block;
+    font: 500 12px / 1 var(--mono);
+    color: var(--ink-2);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    padding: 4px 7px;
+    white-space: nowrap;
+  }
+  .tag-red {
+    color: var(--red);
+    border-color: var(--red);
+  }
+
+  .callout {
+    border-left: 3px solid var(--red);
+    padding: 2px 0 2px 16px;
+  }
+  .callout-amber {
+    border-left-color: var(--amber);
+  }
+
+  /* Chain picker: native radios drawn as one ruled control */
+  .chains {
+    border: 0;
+  }
+  .chains-row {
+    clear: both;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .chain-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 48px;
+    padding: 4px 12px;
+    font: 400 16px / 1.2 var(--serif);
+    cursor: pointer;
+    transition:
+      background-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+  }
+  .chain-option + .chain-option {
+    border-left: 1px solid var(--ink);
+  }
+  .chain-option:has(input:checked) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .chain-option:not(:has(input:checked)):hover {
+    background: var(--paper-band);
+  }
+  .chain-option:has(input:focus-visible) {
+    outline: 2px solid var(--red);
+    outline-offset: -5px;
+  }
+
+  .field {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    font: 400 16px / 1.4 var(--serif);
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+  }
+  .field:focus-visible {
+    outline-offset: 1px;
+    border-color: var(--ink);
+  }
+  .field.mono {
+    font-family: var(--mono);
+    font-size: 15px;
+  }
+}
+
+/* Print: the invoice and the receipt are the document */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+  :root,
+  :root[data-theme="dark"] {
+    --paper: #fff;
+    --paper-band: #fff;
+    --sheet: #fff;
+    --sheet-copy: #fff;
+    --ink: #000;
+    --ink-2: #333;
+    --ink-3: #555;
+    --rule: #bbb;
+    --rule-strong: #777;
+    --red: #b0261c;
+    --stamp: #b0261c;
+    --shadow: none;
+  }
+  body {
+    background: #fff;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .sheet,
+  .slip {
+    box-shadow: none;
+    border-color: #999;
+  }
+  .sheet-ruled {
+    background-image: none;
+    padding: 0;
+  }
+  .print-full::after {
+    content: " " attr(data-full);
+    font-size: 8pt;
+    color: #333;
+    word-break: break-all;
+  }
+  .ink-row {
+    clip-path: none !important;
+    animation: none !important;
+  }
+  .print-break-avoid {
+    break-inside: avoid;
+  }
+  a {
+    text-decoration: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-row {
+    clip-path: none;
+    animation: none;
+  }
+  .caret {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
