@@ -302,7 +302,7 @@ You need Node 24 or later, pnpm ${env("PNPM_VERSION")} and Foundry ${env("FOUNDR
 git clone --recurse-submodules ${REPO_URL}
 cd daybook
 make test                                  # verify's tests, the Foundry suite, then the CLI and tracer tests
-cd web && pnpm install && pnpm dev         # http://localhost:3000, reading the live Lasna deployment
+cd web && pnpm install --frozen-lockfile --allow-build esbuild && pnpm dev   # http://localhost:3000, reading the live Lasna deployment
 \`\`\`
 
 The web app needs no keys to read: it takes the reactive contract's address from docs/DEPLOYMENTS.md and reads everything else from public RPCs. The demo button and the database are optional and show a designed state when unset (\`web/.env.example\` lists the variables).
