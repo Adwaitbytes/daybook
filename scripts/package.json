@@ -6,7 +6,8 @@
   "scripts": {
     "daybook": "node src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/*.test.ts"
+    "test": "node --test src/*.test.ts src/trace/*.test.ts",
+    "trace": "node src/trace/cli.ts"
   },
   "dependencies": {
     "viem": "2.58.1"
