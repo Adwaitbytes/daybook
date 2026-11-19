@@ -244,7 +244,7 @@ contract DaybookTillTest is Test {
         till.setReceiptIssuer(issuer);
         _fund(1, 10e6);
         vm.expectEmit(true, true, false, false, address(till));
-        emit DaybookTill.ReceiptFailed(1, 1);
+        emit DaybookTill.ReceiptFailed(1, 1, 0);
         _settle(1, 1, 10e6, 0);
         assertTrue(till.settled(1, 1));
     }

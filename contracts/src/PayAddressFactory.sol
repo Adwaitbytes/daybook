@@ -66,6 +66,7 @@ contract PayAddressFactory is Ownable2Step {
 
     error NotTill(address caller);
     error ZeroAddress();
+    error RenounceDisabled();
 
     modifier onlyTill() {
         if (!isTill[msg.sender]) revert NotTill(msg.sender);
@@ -74,6 +75,11 @@ contract PayAddressFactory is Ownable2Step {
 
     constructor(address owner_) Ownable(owner_) {
         VAULT_IMPLEMENTATION = address(new InvoiceVault());
+    }
+
+    /// @notice Disabled: without an owner no new till could ever be authorized on this chain.
+    function renounceOwnership() public pure override {
+        revert RenounceDisabled();
     }
 
     /// @notice Authorizes or revokes a till on this chain.

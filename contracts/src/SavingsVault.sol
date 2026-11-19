@@ -21,8 +21,14 @@ contract SavingsVault is IReserve, Ownable2Step {
     event Withdrawn(address indexed token, address indexed to, uint256 amount);
 
     error ZeroAddress();
+    error RenounceDisabled();
 
     constructor(address owner_) Ownable(owner_) { }
+
+    /// @notice Disabled: without an owner the tax reserve could never be withdrawn.
+    function renounceOwnership() public pure override {
+        revert RenounceDisabled();
+    }
 
     /// @inheritdoc IReserve
     function deposit(address token, uint256 amount, uint256 invoiceId) external {

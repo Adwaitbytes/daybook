@@ -9,7 +9,7 @@ import { AcceptedToken } from "../src/DaybookTypes.sol";
 /// @notice Creates one invoice on Reactive and prints its pay address.
 /// Env: REACTIVE, POLICY_ID, AMOUNT (micro-dollars, 6 decimals), ACCEPT_CHAIN_IDS, ACCEPT_TOKENS and
 /// ACCEPT_DECIMALS (comma lists, same length), DUE_AT and EXPIRES_AT (unix seconds, optional),
-/// STRICT_TOKENS (optional bool), DETAILS_HASH (optional bytes32, hash of the off-chain invoice record).
+/// WATCH_ALL_TOKENS (optional bool, default false: watch accepted tokens only), DETAILS_HASH (optional bytes32, hash of the off-chain invoice record).
 contract CreateInvoice is DaybookScript {
     function run() external returns (uint256 id, address pay) {
         DaybookReactive reactive = DaybookReactive(payable(_envAddress("REACTIVE")));
@@ -27,7 +27,7 @@ contract CreateInvoice is DaybookScript {
             dueAt: uint64(vm.envOr("DUE_AT", uint256(0))),
             expiresAt: uint64(vm.envOr("EXPIRES_AT", uint256(0))),
             policyId: uint32(_envUint("POLICY_ID")),
-            strictTokens: vm.envOr("STRICT_TOKENS", false),
+            watchAllTokens: vm.envOr("WATCH_ALL_TOKENS", false),
             detailsHash: vm.envOr("DETAILS_HASH", bytes32(0)),
             accepted: acc
         });

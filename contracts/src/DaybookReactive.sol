@@ -54,7 +54,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint64 createdAt;
         InvoiceStatus status;
         bool overdue;
-        bool strictTokens;
+        bool watchAllTokens;
         uint16 openSettlements;
         uint256 amount;
         uint256 paid;
@@ -66,7 +66,10 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint64 dueAt; // 0 = no due date
         uint64 expiresAt; // 0 = never expires
         uint32 policyId;
-        bool strictTokens; // true: watch accepted tokens only; false: watch every token sent to the pay address
+        // false (the default): watch accepted tokens only. true: watch every token sent to the pay address on each
+        // accepted chain, so wrong-token payments are flagged; narrows itself to accepted tokens once the flag
+        // budget is spent, because every matching log is a billed reaction.
+        bool watchAllTokens;
         bytes32 detailsHash;
         AcceptedToken[] accepted;
     }
@@ -84,7 +87,10 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     struct PairState {
         uint128 counted; // raw token units counted toward the invoice, not yet sent for settlement
         uint128 excess; // raw token units beyond the invoice amount, not yet sent for settlement
-        address lastPayer;
+        // Receipt payer: the sender of the largest single transfer counted on this pair, so a one-unit transfer
+        // cannot take the receipt for someone else's payment.
+        address topPayer;
+        uint96 topAmount;
     }
 
     struct LedgerEntry {
@@ -147,6 +153,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     /// When less is left, the rest of the invoice's balances are requested on the next cron tick instead, so a
     /// cover with many funded chains never runs into the 900k reactive gas cap.
     uint256 public constant GAS_RESERVE = 320_000;
+    /// @notice Gas kept in hand while a manual-sweep acknowledgement walks the pending queue.
+    uint256 internal constant SWEEP_SCAN_RESERVE = 100_000;
     /// @notice Flagged wrong-token entries kept per invoice. Beyond it inflows are only counted, which bounds
     /// what spam sent to a public pay address can cost.
     uint256 public constant MAX_FLAGGED = 16;
@@ -168,7 +176,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     // ------------------------------------------------------------------ state
 
-    uint64 public callbackGasLimit = 1_000_000;
+    uint64 public callbackGasLimit = 1_300_000;
     uint64 public resendAfter = 300;
     bool public cronActive;
 
@@ -181,7 +189,6 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     mapping(uint256 invoiceId => Invoice) internal _invoices;
     mapping(uint256 invoiceId => AcceptedToken[]) internal _accepted;
-    mapping(uint256 invoiceId => Sub[]) internal _subs;
     mapping(uint256 invoiceId => mapping(uint256 pairIndex => PairState)) internal _pairs;
     mapping(address payAddress => uint256 invoiceId) public invoiceOfPayAddress;
 
@@ -189,6 +196,15 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     mapping(bytes32 key => bool) public seen;
     mapping(uint256 invoiceId => uint256) public flaggedCount;
     mapping(uint256 invoiceId => uint256) public droppedFlags;
+    /// @notice Receipt payer pinned for a late or orphaned settlement (the sender of that one transfer). Zero for
+    /// settlements made when an invoice closes: those use the pair's top payer, which cannot change once the
+    /// invoice is no longer open, so resends always name the same payer.
+    mapping(uint256 seq => address) internal _receiptPayerOverride;
+    /// @dev Open (unacknowledged, unresolved, stuck included) settlements per chain, stored plus one once a till is
+    /// registered so the counter never pays a zero-to-nonzero write on the reaction path.
+    mapping(uint256 chainId => uint256) internal _openOnChainPlusOne;
+    /// @notice Largest invoice amount (INVOICE_DECIMALS units) the owner may issue; mirrors the tills' caps.
+    uint256 public maxInvoiceAmount = 10_000e6;
 
     LedgerEntry[] internal _ledger;
     mapping(uint256 seq => Settlement) internal _settlements;
@@ -210,7 +226,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint64 dueAt,
         uint64 expiresAt,
         uint32 policyId,
-        bool strictTokens,
+        bool watchAllTokens,
         bytes32 detailsHash,
         AcceptedToken[] accepted
     );
@@ -261,6 +277,9 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     event CallbackGasLimitSet(uint64 gasLimit);
     event ResendAfterSet(uint64 secondsAfter);
     event NativeWithdrawn(address indexed to, uint256 amount);
+    event WatchNarrowed(uint256 indexed invoiceId);
+    event OwnerRecorded(uint256 indexed invoiceId, uint256 chainId, uint256 txHash, uint256 logIndex);
+    event MaxInvoiceAmountSet(uint256 amount);
 
     // ----------------------------------------------------------------- errors
 
@@ -279,6 +298,10 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     error GasLimitTooLow(uint64 gasLimit);
     error ResendTooSoon(uint64 secondsAfter);
     error NativeTransferFailed();
+    error OverInvoiceCap(uint256 amount, uint256 cap);
+    error OpenSettlementsOnChain(uint256 chainId, uint256 open);
+    error NotRecordable();
+    error RenounceDisabled();
 
     // ------------------------------------------------------------ constructor
 
@@ -315,7 +338,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             _onSettled(log_);
         } else if (log_.topic0 == MANUAL_SWEEP_TOPIC) {
             if (log_.opCode != 4 || log_.contractAddress != tillOf[log_.chainId]) return;
-            _onManualSweep(log_.chainId, log_.topic1, address(uint160(log_.topic2)));
+            if (log_.data.length != 32) return;
+            _onManualSweep(log_.chainId, log_.topic1, address(uint160(log_.topic2)), abi.decode(log_.data, (uint256)));
         }
     }
 
@@ -344,6 +368,9 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     /// subscriptions with it.
     function setTill(uint256 chainId, address till) external onlyOwner {
         if (chainId == 0) revert BadAccepted();
+        uint256 open = openSettlementsOn(chainId);
+        if (open != 0) revert OpenSettlementsOnChain(chainId, open);
+        if (_openOnChainPlusOne[chainId] == 0) _openOnChainPlusOne[chainId] = 1;
         address old = tillOf[chainId];
         if (old != address(0)) {
             _unsubscribe(_tillSub(chainId, old, SETTLED_TOPIC));
@@ -359,7 +386,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     /// @notice Creates an invoice and starts watching its pay address on every accepted chain.
     function createInvoice(CreateInvoiceParams calldata p) external onlyOwner returns (uint256 invoiceId) {
-        if (p.amount == 0 || p.amount > type(uint128).max) revert ZeroAmount();
+        if (p.amount == 0) revert ZeroAmount();
+        if (p.amount > maxInvoiceAmount) revert OverInvoiceCap(p.amount, maxInvoiceAmount);
         if (_policies[p.policyId].treasury == address(0)) revert UnknownPolicy(p.policyId);
         if (p.expiresAt != 0 && (p.expiresAt <= block.timestamp || (p.dueAt != 0 && p.expiresAt < p.dueAt))) {
             revert BadTimes();
@@ -392,7 +420,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             createdAt: uint64(block.timestamp),
             status: InvoiceStatus.Open,
             overdue: false,
-            strictTokens: p.strictTokens,
+            watchAllTokens: p.watchAllTokens,
             openSettlements: 0,
             amount: p.amount,
             paid: 0,
@@ -400,10 +428,10 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         });
         invoiceOfPayAddress[pay] = invoiceId;
         emit InvoiceCreated(
-            invoiceId, pay, p.amount, p.dueAt, p.expiresAt, p.policyId, p.strictTokens, p.detailsHash, p.accepted
+            invoiceId, pay, p.amount, p.dueAt, p.expiresAt, p.policyId, p.watchAllTokens, p.detailsHash, p.accepted
         );
 
-        _buildAndSubscribe(invoiceId, pay, p.strictTokens);
+        _subscribeInvoice(invoiceId);
         if (p.dueAt != 0 || p.expiresAt != 0) IdSet.add(_timed, invoiceId);
         _syncCron();
     }
@@ -437,6 +465,32 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         if (s.status != SettlementStatus.Pending && s.status != SettlementStatus.Stuck) revert NotOutstanding(seq);
         _resolve(seq, s);
         _syncCron();
+    }
+
+    /// @notice Records a Transfer whose delivery was missed (for example while the contract was in debt). It goes
+    /// through the same dedupe key as `react()`, so if the log does arrive later it is a harmless duplicate. The
+    /// owner is the payee, so this adds no trust a payer does not already extend; `OwnerRecorded` lets a
+    /// verifier check each such entry against the origin chain.
+    function recordMissedTransfer(LogRecord calldata log_) external onlyOwner {
+        if (log_.topic0 != TRANSFER_TOPIC || log_.opCode != 3 || log_.data.length != 32) revert NotRecordable();
+        uint256 invoiceId = invoiceOfPayAddress[address(uint160(log_.topic2))];
+        if (invoiceId == 0 || seen[keccak256(abi.encode(log_.chainId, log_.txHash, log_.logIndex))]) {
+            revert NotRecordable();
+        }
+        emit OwnerRecorded(invoiceId, log_.chainId, log_.txHash, log_.logIndex);
+        _onTransfer(log_);
+    }
+
+    /// @notice Sets the largest invoice amount that may be issued. Keep it at or below every till's cap.
+    function setMaxInvoiceAmount(uint256 amount) external onlyOwner {
+        if (amount == 0 || amount > type(uint128).max) revert ZeroAmount();
+        maxInvoiceAmount = amount;
+        emit MaxInvoiceAmountSet(amount);
+    }
+
+    /// @notice Disabled: losing the owner would strand invoices and stuck settlements for good.
+    function renounceOwnership() public pure override {
+        revert RenounceDisabled();
     }
 
     function setCallbackGasLimit(uint64 gasLimit) external onlyOwner {
@@ -478,6 +532,44 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             Clones.predictDeterministicAddress(VAULT_IMPLEMENTATION, DaybookLib.salt(address(this), invoiceId), FACTORY);
     }
 
+    /// @notice Everything a health page needs to judge how long this contract keeps running: its own balance,
+    /// reserves and debt at the system contract (any debt stops all reactions), and the work holding cron.
+    function runway()
+        external
+        view
+        returns (
+            uint256 balance,
+            uint256 reserves,
+            uint256 debt,
+            bool cron,
+            uint256 pending,
+            uint256 timed,
+            uint256 closing
+        )
+    {
+        balance = address(this).balance;
+        (bool ok, bytes memory ret) =
+            address(SYSTEM).staticcall(abi.encodeWithSignature("reserves(address)", address(this)));
+        if (ok && ret.length == 32) reserves = abi.decode(ret, (uint256));
+        debt = SYSTEM.debt(address(this));
+        return (balance, reserves, debt, cronActive, _pending.length, _timed.items.length, _closing.items.length);
+    }
+
+    /// @notice Settlements on a chain not yet acknowledged or resolved, stuck ones included. `setTill` is refused
+    /// while this is non-zero, so an in-flight settlement is never answered by, or re-run on, a different till.
+    function openSettlementsOn(uint256 chainId) public view returns (uint256) {
+        uint256 v = _openOnChainPlusOne[chainId];
+        return v == 0 ? 0 : v - 1;
+    }
+
+    /// @notice The payer named on a settlement's receipt (fixed for the settlement's lifetime).
+    function receiptPayerOf(uint256 seq) public view returns (address) {
+        address o = _receiptPayerOverride[seq];
+        if (o != address(0)) return o;
+        Settlement storage s = _settlements[seq];
+        return _pairs[s.invoiceId][s.pairIndex].topPayer;
+    }
+
     function getInvoice(uint256 invoiceId) external view returns (Invoice memory) {
         return _invoices[invoiceId];
     }
@@ -487,7 +579,9 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     }
 
     function subscriptionsOf(uint256 invoiceId) external view returns (Sub[] memory) {
-        return _subs[invoiceId];
+        Invoice storage inv = _invoices[invoiceId];
+        if (inv.status != InvoiceStatus.Open) return new Sub[](0);
+        return _invoiceSubs(invoiceId, inv.watchAllTokens);
     }
 
     function pairState(uint256 invoiceId, uint256 pairIndex) external view returns (PairState memory) {
@@ -560,9 +654,12 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
         Invoice storage inv = _invoices[invoiceId];
         PairState storage pair = _pairs[invoiceId][pairIndex];
-        pair.lastPayer = payer;
 
         if (inv.status == InvoiceStatus.Open) {
+            if (value > pair.topAmount) {
+                pair.topPayer = payer;
+                pair.topAmount = uint96(value);
+            }
             uint8 decimals = _accepted[invoiceId][pairIndex].decimals;
             (uint256 counted, uint256 excess, uint256 credit) = _apply(inv.amount - inv.paid, value, decimals);
             inv.paid += credit;
@@ -577,7 +674,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
                 ? EntryKind.Late
                 : EntryKind.Orphaned;
             _record(invoiceId, log_, payer, kind, value, value);
-            _requestSettlement(invoiceId, pairIndex, 0, value);
+            // This settlement is for this one transfer, so its receipt goes to its sender.
+            _requestSettlement(invoiceId, pairIndex, 0, value, payer);
         }
         _syncCron();
     }
@@ -610,9 +708,22 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             emit FlagDropped(invoiceId, log_.chainId, log_.contractAddress, value);
             return;
         }
-        ++flaggedCount[invoiceId];
+        uint256 flagged = ++flaggedCount[invoiceId];
         uint128 clipped = value > type(uint128).max ? type(uint128).max : uint128(value);
         _record(invoiceId, log_, payer, EntryKind.WrongToken, clipped, 0);
+        if (flagged == MAX_FLAGGED) _narrowWatch(invoiceId);
+    }
+
+    /// @dev Every log matching a subscription is a billed reaction, and anyone can emit Transfer-shaped logs
+    /// naming a public pay address. Once the flag budget is spent, an all-token watch drops to accepted tokens
+    /// only, which caps what spam can cost an invoice at MAX_FLAGGED reactions.
+    function _narrowWatch(uint256 invoiceId) internal {
+        Invoice storage inv = _invoices[invoiceId];
+        if (!inv.watchAllTokens || inv.status != InvoiceStatus.Open) return;
+        _unsubscribeInvoice(invoiceId);
+        inv.watchAllTokens = false;
+        _subscribeInvoice(invoiceId);
+        emit WatchNarrowed(invoiceId);
     }
 
     function _record(
@@ -694,8 +805,9 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             }
             pair.counted = 0;
             pair.excess = 0;
-            if (asIncome) _requestSettlement(invoiceId, i, counted, excess);
-            else _requestSettlement(invoiceId, i, 0, counted + excess);
+            // The receipt names the pair's top payer, frozen now that the invoice is closed.
+            if (asIncome) _requestSettlement(invoiceId, i, counted, excess, address(0));
+            else _requestSettlement(invoiceId, i, 0, counted + excess, address(0));
         }
         IdSet.remove(_closing, invoiceId);
         if (inv.status == InvoiceStatus.Paid && inv.openSettlements == 0) _markSettled(invoiceId);
@@ -709,8 +821,16 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     // ------------------------------------------------------------ settlements
 
-    function _requestSettlement(uint256 invoiceId, uint256 pairIndex, uint256 amount, uint256 excess) internal {
+    function _requestSettlement(
+        uint256 invoiceId,
+        uint256 pairIndex,
+        uint256 amount,
+        uint256 excess,
+        address receiptPayerOverride
+    ) internal {
         uint256 seq = ++nextSeq;
+        if (receiptPayerOverride != address(0)) _receiptPayerOverride[seq] = receiptPayerOverride;
+        ++_openOnChainPlusOne[_accepted[invoiceId][pairIndex].chainId];
         _settlements[seq] = Settlement({
             invoiceId: uint64(invoiceId),
             lastSentAt: 0,
@@ -742,7 +862,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
                 a.token,
                 s.amount,
                 s.excess,
-                _pairs[invoiceId][s.pairIndex].lastPayer,
+                receiptPayerOf(seq),
                 _policies[_invoices[invoiceId].policyId]
             )
         );
@@ -768,23 +888,34 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         _syncCron();
     }
 
-    function _onManualSweep(uint256 chainId, uint256 invoiceId, address token) internal {
-        if (_invoices[invoiceId].status == InvoiceStatus.None) return;
+    /// @dev The owner moved `swept` units by hand. Settlements still waiting for this pair are resolved only up to
+    /// what was actually moved, then the remainder comes off the held balance; a later transfer that raced the
+    /// sweep keeps its own balance. The queue walk is gas-bounded: whatever it cannot reach keeps being resent,
+    /// fails against the emptied address and ends Stuck for the owner to resolve.
+    function _onManualSweep(uint256 chainId, uint256 invoiceId, address token, uint256 swept) internal {
+        if (swept == 0 || _invoices[invoiceId].status == InvoiceStatus.None) return;
         (bool found, uint256 pairIndex) = _findPair(invoiceId, chainId, token);
         if (!found) return;
-        // The owner moved the funds by hand: stop resending anything queued for this invoice and pair. Walk the
-        // queue backwards because resolving removes entries by swap-and-pop.
-        for (uint256 i = _pending.length; i > 0; --i) {
+        uint256 remaining = swept;
+        // Walk backwards because resolving removes entries by swap-and-pop.
+        for (uint256 i = _pending.length; i > 0 && remaining != 0; --i) {
+            if (gasleft() < SWEEP_SCAN_RESERVE) break;
             uint256 seq = _pending[i - 1];
             Settlement storage s = _settlements[seq];
-            if (s.invoiceId == invoiceId && s.pairIndex == pairIndex) _resolve(seq, s);
+            if (s.invoiceId != invoiceId || s.pairIndex != pairIndex) continue;
+            uint256 total = uint256(s.amount) + s.excess;
+            if (total > remaining) continue;
+            remaining -= total;
+            _resolve(seq, s);
         }
-        // And forget any balance still held for it, so a later cover does not ask to sweep money that is gone.
         PairState storage pair = _pairs[invoiceId][pairIndex];
-        if (pair.counted != 0 || pair.excess != 0) {
-            emit PairBalanceCleared(invoiceId, chainId, token, pair.counted, pair.excess);
-            pair.counted = 0;
-            pair.excess = 0;
+        uint256 fromCounted = remaining < pair.counted ? remaining : pair.counted;
+        remaining -= fromCounted;
+        uint256 fromExcess = remaining < pair.excess ? remaining : pair.excess;
+        if (fromCounted != 0 || fromExcess != 0) {
+            pair.counted -= uint128(fromCounted);
+            pair.excess -= uint128(fromExcess);
+            emit PairBalanceCleared(invoiceId, chainId, token, fromCounted, fromExcess);
         }
         _syncCron();
     }
@@ -798,6 +929,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     function _finishSettlement(Settlement storage s, uint256 invoiceId) internal {
         _pendingRemove(s);
+        --_openOnChainPlusOne[_accepted[invoiceId][s.pairIndex].chainId];
         Invoice storage inv = _invoices[invoiceId];
         --inv.openSettlements;
         if (inv.openSettlements == 0 && inv.status == InvoiceStatus.Paid && !IdSet.contains(_closing, invoiceId)) {
@@ -886,37 +1018,47 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     // ---------------------------------------------------------- subscriptions
 
-    function _buildAndSubscribe(uint256 invoiceId, address pay, bool strictTokens) internal {
+    /// @dev An invoice's subscriptions are derived, never stored: from its accepted pairs (immutable), its pay
+    /// address (immutable) and its watch mode. Subscribe and unsubscribe both call this with the mode in force,
+    /// so the six arguments always match. Watching all tokens needs one subscription per chain; watching
+    /// accepted tokens needs one per pair.
+    function _invoiceSubs(uint256 invoiceId, bool watchAll) internal view returns (Sub[] memory subs) {
         AcceptedToken[] storage acc = _accepted[invoiceId];
-        Sub[] storage subs = _subs[invoiceId];
+        uint256 pay = uint256(uint160(_invoices[invoiceId].payAddress));
         uint256 n = acc.length;
+        subs = new Sub[](n);
+        uint256 count = 0;
         for (uint256 i; i < n; ++i) {
-            address contractAddr = strictTokens ? acc[i].token : address(0);
+            address contractAddr = watchAll ? address(0) : acc[i].token;
             bool dup = false;
-            for (uint256 j; j < subs.length; ++j) {
-                if (subs[j].chainId == acc[i].chainId && subs[j].contractAddr == contractAddr) {
-                    dup = true;
-                    break;
-                }
+            for (uint256 j; j < count; ++j) {
+                if (subs[j].chainId == acc[i].chainId && subs[j].contractAddr == contractAddr) dup = true;
             }
             if (dup) continue;
-            Sub memory s = Sub({
+            subs[count++] = Sub({
                 chainId: acc[i].chainId,
                 contractAddr: contractAddr,
                 topic0: TRANSFER_TOPIC,
                 topic1: REACTIVE_IGNORE,
-                topic2: uint256(uint160(pay)),
+                topic2: pay,
                 topic3: REACTIVE_IGNORE
             });
-            subs.push(s);
-            _subscribe(s);
+        }
+        assembly ("memory-safe") {
+            mstore(subs, count)
+        }
+    }
+
+    function _subscribeInvoice(uint256 invoiceId) internal {
+        Sub[] memory subs = _invoiceSubs(invoiceId, _invoices[invoiceId].watchAllTokens);
+        for (uint256 i; i < subs.length; ++i) {
+            _subscribe(subs[i]);
         }
     }
 
     function _unsubscribeInvoice(uint256 invoiceId) internal {
-        Sub[] storage subs = _subs[invoiceId];
-        uint256 n = subs.length;
-        for (uint256 i; i < n; ++i) {
+        Sub[] memory subs = _invoiceSubs(invoiceId, _invoices[invoiceId].watchAllTokens);
+        for (uint256 i; i < subs.length; ++i) {
             _unsubscribe(subs[i]);
         }
     }

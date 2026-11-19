@@ -56,8 +56,10 @@ abstract contract DaybookFixture is OmniHarness {
         Recipient[] memory team = new Recipient[](2);
         team[0] = Recipient(team1, TEAM1_BPS);
         team[1] = Recipient(team2, TEAM2_BPS);
-        vm.prank(owner);
+        vm.startPrank(owner);
         policyId = reactive.createPolicy(treasury, TAX_BPS, team);
+        reactive.setMaxInvoiceAmount(CAP);
+        vm.stopPrank();
         _flush();
     }
 
@@ -109,7 +111,7 @@ abstract contract DaybookFixture is OmniHarness {
             dueAt: dueAt,
             expiresAt: expiresAt,
             policyId: policyId,
-            strictTokens: strict,
+            watchAllTokens: !strict,
             detailsHash: keccak256("invoice details"),
             accepted: acc
         });
@@ -124,7 +126,8 @@ abstract contract DaybookFixture is OmniHarness {
         _flush();
     }
 
-    /// @notice A plain invoice: `amount` micro-dollars, payable on A and B, no due date, wildcard watching.
+    /// @notice A plain invoice: `amount` micro-dollars, payable on A and B, no due date, watching all tokens
+    /// (the opt-in mode, so wrong-token flagging and its spam guard are exercised).
     function _createAB(uint256 amount) internal returns (uint256) {
         return _create(amount, _acceptAB(), 0, 0, false);
     }

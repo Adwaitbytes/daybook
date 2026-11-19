@@ -27,6 +27,9 @@ struct AcceptedToken {
 library DaybookLib {
     uint16 internal constant BPS = 10_000;
     uint256 internal constant MAX_TEAM = 5;
+    /// @notice Gas the till forwards to its receipt issuer. A real EAS attestation measured 313,995 gas on a
+    /// Base mainnet fork (test/security/EasReceiptGas.t.sol); 400,000 leaves about 25% margin.
+    uint256 internal constant RECEIPT_GAS = 400_000;
 
     error TooManyRecipients(uint256 count);
     error ZeroAddress();

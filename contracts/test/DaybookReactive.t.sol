@@ -402,8 +402,19 @@ contract DaybookReactiveTest is DaybookFixture {
             _pay(junkA, payer, pay, 1);
         }
         assertEq(reactive.flaggedCount(id), 16);
-        assertEq(reactive.droppedFlags(id), 1);
+        // H-1: the sixteenth flag narrows the watch, so the seventeenth spam log never reaches react().
+        assertEq(reactive.droppedFlags(id), 0);
         assertEq(reactive.ledgerLength(), 16);
+        assertFalse(reactive.getInvoice(id).watchAllTokens);
+        DaybookReactive.Sub[] memory subs = reactive.subscriptionsOf(id);
+        assertEq(subs.length, 2);
+        assertEq(subs[0].contractAddr, address(usd[CHAIN_A]));
+        assertEq(subs[1].contractAddr, address(usd[CHAIN_B]));
+        assertEq(unsubscribeMisses, 0);
+        // Real payments still match after narrowing.
+        _payInvoice(CHAIN_B, id, AMOUNT);
+        assertEq(uint8(_status(id)), uint8(DaybookReactive.InvoiceStatus.Settled));
+        assertEq(unsubscribeMisses, 0);
     }
 
     function test_Matching_OversizedValueIsFlagged() public {
@@ -587,8 +598,11 @@ contract DaybookReactiveTest is DaybookFixture {
         uint256 used = proxyOf[CHAIN_A].maxGasUsed();
         emit log_named_uint("worst-case settle gas (5 recipients, reserve, excess, vault deploy)", used);
         assertEq(uint8(_status(id)), uint8(DaybookReactive.InvoiceStatus.Settled));
-        // Budget against the worst proxy overhead (Ethereum, 200k) plus the full receipt-issuer allowance.
-        assertLt(used + 200_000 + tillOn[CHAIN_A].RECEIPT_GAS(), reactive.callbackGasLimit(), "fits callback gas");
+        // Budget: worst proxy overhead (Ethereum, 200k) plus 20% margin on settle work and the full receipt
+        // allowance (sized for a real EAS attestation, measured at 313,995 gas on a Base mainnet fork).
+        uint256 needed = (used + tillOn[CHAIN_A].RECEIPT_GAS()) * 12 / 10 + 200_000;
+        emit log_named_uint("callback gas needed with margin", needed);
+        assertLe(needed, reactive.callbackGasLimit(), "fits callback gas");
     }
 
     // ------------------------------------------------------------------ admin

@@ -15,6 +15,10 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
 ]
 fs_permissions = [{ access = "read", path = "./" }]
+# DaybookReactive alone is built through the IR pipeline: it is the one contract near the 24,576-byte limit and
+# IR leaves about 2 KB of headroom. Everything else, the pay address factory included, keeps the legacy pipeline.
+additional_compiler_profiles = [{ name = "ir", via_ir = true }]
+compilation_restrictions = [{ paths = "src/DaybookReactive.sol", via_ir = true }]
 
 [fuzz]
 runs = 512

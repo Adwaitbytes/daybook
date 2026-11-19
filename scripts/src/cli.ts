@@ -24,8 +24,9 @@ const USAGE = `daybook <command> [options]
 
   create-invoice  --rpc <url> --reactive <addr> --policy <id> --amount <usd, e.g. 1250.00>
                   --accept <chainId:token:decimals>[,...] [--due <unix>] [--expires <unix>]
-                  [--strict] [--details-hash <bytes32>] [--send] [--account <keystore>]
-                  Encode createInvoice; with --send, submit it through \`cast send\` using the Foundry keystore
+                  [--watch-all-tokens] [--details-hash <bytes32>] [--send] [--account <keystore>]
+                  Watches accepted tokens only unless --watch-all-tokens is given (then wrong-token payments
+                  are flagged until 16 have been seen). Encode createInvoice; with --send, submit it through \`cast send\` using the Foundry keystore
                   (default omni-deployer), so no private key ever passes through this tool.`;
 
 class UsageError extends Error {}
@@ -80,7 +81,7 @@ async function main(argv: string[]): Promise<void> {
       accept: { type: "string" },
       due: { type: "string" },
       expires: { type: "string" },
-      strict: { type: "boolean", default: false },
+      "watch-all-tokens": { type: "boolean", default: false },
       "details-hash": { type: "string" },
       send: { type: "boolean", default: false },
       account: { type: "string", default: "omni-deployer" },
@@ -112,6 +113,7 @@ async function main(argv: string[]): Promise<void> {
             amount: formatUnits(inv.amount, 6),
             paid: formatUnits(inv.paid, 6),
             overdue: inv.overdue,
+            watchAllTokens: inv.watchAllTokens,
             dueAt: Number(inv.dueAt),
             expiresAt: Number(inv.expiresAt),
             openSettlements: inv.openSettlements,
@@ -144,7 +146,7 @@ async function main(argv: string[]): Promise<void> {
             dueAt: values.due === undefined ? 0n : positiveInt(values.due, "--due"),
             expiresAt: values.expires === undefined ? 0n : positiveInt(values.expires, "--expires"),
             policyId: Number(positiveInt(required(values, "policy"), "--policy")),
-            strictTokens: values.strict === true,
+            watchAllTokens: values["watch-all-tokens"] === true,
             detailsHash,
             accepted: parseAccepted(required(values, "accept")),
           },
