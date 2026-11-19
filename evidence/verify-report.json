@@ -1,0 +1,352 @@
+{
+  "ok": true,
+  "ranAt": "2026-11-19T15:42:58.201Z",
+  "seconds": 704,
+  "fresh": true,
+  "summaryAsOf": {
+    "lasnaBlock": "8742565",
+    "lasnaTimeMs": 1795101098000,
+    "lasnaTime": "2026-11-19T15:11:38.000Z",
+    "payment": {
+      "1301": "68248610",
+      "84532": "60895850"
+    }
+  },
+  "lasnaHead": "8743666",
+  "checks": 1350,
+  "mismatches": [],
+  "errors": [],
+  "sections": [
+    {
+      "name": "loops.csv",
+      "rows": 12,
+      "checks": 340,
+      "mismatches": 0,
+      "notes": [
+        "row 2 v0-L1-exact: trace_error row kept (rows are never dropped); the origin tx is traced again in a later row"
+      ],
+      "skipped": []
+    },
+    {
+      "name": "summary.loops",
+      "rows": 0,
+      "checks": 176,
+      "mismatches": 0,
+      "notes": [],
+      "skipped": []
+    },
+    {
+      "name": "ledger",
+      "rows": 12,
+      "checks": 192,
+      "mismatches": 0,
+      "notes": [
+        "v1 inflow 84532:0x57ae8a97862b6096af48881a5ca8708e69c47f283b1ea403e5f8e13d2ab3f0a2:2: 1000000 of non-accepted token 0xBF1Bfc97f7cf822113D41922c92910eAC925Dee7 to invoice 2; not watched by design (accepted-token watch), left at the pay address"
+      ],
+      "skipped": []
+    },
+    {
+      "name": "summary.chain",
+      "rows": 0,
+      "checks": 259,
+      "mismatches": 0,
+      "notes": [],
+      "skipped": []
+    },
+    {
+      "name": "contracts",
+      "rows": 29,
+      "checks": 57,
+      "mismatches": 0,
+      "notes": [
+        "v1-a PayAddressFactory (legacy build) on Unichain Sepolia 0xAa4AaE051a408eb6DEB491A1D2523E8d69ED1D04: Sourcify null (DEPLOYMENTS.md states no status)"
+      ],
+      "skipped": []
+    },
+    {
+      "name": "summary.contracts",
+      "rows": 0,
+      "checks": 145,
+      "mismatches": 0,
+      "notes": [],
+      "skipped": []
+    },
+    {
+      "name": "docs",
+      "rows": 8,
+      "checks": 177,
+      "mismatches": 0,
+      "notes": [
+        "75 distinct transaction hashes linked or tabled in the docs"
+      ],
+      "skipped": []
+    },
+    {
+      "name": "health page",
+      "rows": 1,
+      "checks": 3,
+      "mismatches": 0,
+      "notes": [],
+      "skipped": []
+    },
+    {
+      "name": "generated docs",
+      "rows": 2,
+      "checks": 1,
+      "mismatches": 0,
+      "notes": [],
+      "skipped": []
+    }
+  ],
+  "contracts": [
+    {
+      "name": "DaybookReactive",
+      "deployment": "v1",
+      "chainId": 5318007,
+      "address": "0x182BA62E240433B54136712d8840Ccc354bb78d3",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xA7984241CC7596B0ED7C3b71409Bda7cf6E0D33c",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xA7984241CC7596B0ED7C3b71409Bda7cf6E0D33c",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xCDE82FE77A96C255154341A6839cDEfe71f6e348",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xCDE82FE77A96C255154341A6839cDEfe71f6e348",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0x4Bd6fE154dF715608eE3294BB3EcA4028703bba9",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xb444ca6477cc594E35a5676d5f7ABa51E7c5CC26",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1",
+      "chainId": 84532,
+      "address": "0xf36c602e30828881A9Aa46782fAB974584807e36",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xAea11aFA4f56f8f7952cE543Ea49421D70d5EFCf",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0xc03A2Ce7cc50B940f063eA39FBbFE51bf1750668",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1",
+      "chainId": 1301,
+      "address": "0x0c1eA9879bFEa9Ce280D2bdb1b7755989d2D64aE",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DBKTEST (MockERC20)",
+      "deployment": "fixture",
+      "chainId": 84532,
+      "address": "0xBF1Bfc97f7cf822113D41922c92910eAC925Dee7",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DoubleSubProbe",
+      "deployment": "fixture",
+      "chainId": 5318007,
+      "address": "0x2C10E554FdAb44E2D85407457584b94c3CEebA05",
+      "sourcify": "null",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory (legacy build)",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xAa4AaE051a408eb6DEB491A1D2523E8d69ED1D04",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xAea11aFA4f56f8f7952cE543Ea49421D70d5EFCf",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0xc03A2Ce7cc50B940f063eA39FBbFE51bf1750668",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v1-a",
+      "chainId": 84532,
+      "address": "0x2edc3FC05EcaA02dB18eeF5d5C581E5Be4a3a37D",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory (legacy build)",
+      "deployment": "v1-a",
+      "chainId": 1301,
+      "address": "0xAa4AaE051a408eb6DEB491A1D2523E8d69ED1D04",
+      "sourcify": "null",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookReactive",
+      "deployment": "v0",
+      "chainId": 5318007,
+      "address": "0x16d3b2d6e397B9b047eaec44e3d23ac016f462f0",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x76c0f35aB702D1c457766a4d9afE96dD960852C9",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "PayAddressFactory",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x76c0f35aB702D1c457766a4d9afE96dD960852C9",
+      "sourcify": "null",
+      "hasCode": true
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x6fe8836e7519bb38ABB5Bcf90C699dA4E72f9D08",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "InvoiceVault implementation",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x6fe8836e7519bb38ABB5Bcf90C699dA4E72f9D08",
+      "sourcify": "match",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0xA4294ae5531Fc2C6d846bD2310cd242eB4e6Bda6",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "DaybookTill",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0xA4294ae5531Fc2C6d846bD2310cd242eB4e6Bda6",
+      "sourcify": "null",
+      "hasCode": true
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0xfAaD47FA1084B2DF56Cc9C64BE416ec9Fb90A5E4",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "SavingsVault",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0xfAaD47FA1084B2DF56Cc9C64BE416ec9Fb90A5E4",
+      "sourcify": "null",
+      "hasCode": true
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v0",
+      "chainId": 84532,
+      "address": "0x5892a935d509ba8cD848e45a4E8Db4636Ea974Dc",
+      "sourcify": "exact_match",
+      "hasCode": true
+    },
+    {
+      "name": "EasReceiptIssuer",
+      "deployment": "v0",
+      "chainId": 1301,
+      "address": "0x5892a935d509ba8cD848e45a4E8Db4636Ea974Dc",
+      "sourcify": "exact_match",
+      "hasCode": true
+    }
+  ],
+  "rpc": {
+    "1301": {
+      "requests": 209,
+      "cacheHits": 0,
+      "retries": 0
+    },
+    "84532": {
+      "requests": 2831,
+      "cacheHits": 0,
+      "retries": 16
+    },
+    "5318007": {
+      "requests": 512,
+      "cacheHits": 0,
+      "retries": 0
+    }
+  }
+}
