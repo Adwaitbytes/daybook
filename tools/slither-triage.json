@@ -1,0 +1,22 @@
+{
+  "tool": "slither-analyzer 0.11.6, config slither.config.json (src/ only: lib/, test/ and script/ filtered)",
+  "policy": "CI fails on any High finding without an entry here. Each entry was read against the source, not accepted on the detector's word. Medium findings are listed by detector with the reason they are accepted; they do not gate.",
+  "reviewed": "2026-11-19",
+  "high": [
+    {
+      "key": "reentrancy-balance: Reentrancy in DaybookTill._depositTax(uint256,address,uint256):",
+      "decision": "accepted, the balance check is the guard",
+      "reason": "The balance is read before reserve.deposit() on purpose: the difference is what the reserve pulled, and any amount other than `tax` reverts with ReserveMismatch. The reserve is owner-set (setReserve is onlyOwner), the allowance is exact and reset to zero afterwards, and _depositTax only runs inside settle(), which is nonReentrant, so the reserve cannot re-enter the till to move the balance between the two reads."
+    },
+    {
+      "key": "uninitialized-state: DaybookReactive._accepted is never initialized. It is used in:",
+      "decision": "false positive",
+      "reason": "A mapping of arrays written through a storage pointer in createInvoice (`AcceptedToken[] storage acc = _accepted[invoiceId]; acc.push(...)`), which Slither does not count as initialization."
+    }
+  ],
+  "medium": {
+    "incorrect-equality": "In _onManualSweep and sweep: equality on zero amounts the contract itself tracks, not on a balance an outsider can move.",
+    "reentrancy-no-eth": "In DaybookReactive (_close, _processPending, _sendBalances, _narrowWatch, _processTimed, _runScheduledWork, setTill). The external calls are to the Reactive system contract (protocol constant) to subscribe or unsubscribe. Also excluded in foundry.toml [lint] (docs/DECISIONS.md).",
+    "unused-return": "PayAddressFactory.deploy ignores the address Clones.cloneDeterministic returns: CREATE2 puts the clone at payAddress(salt), which deploy() already returns, and cloneDeterministic reverts if the deployment fails."
+  }
+}
