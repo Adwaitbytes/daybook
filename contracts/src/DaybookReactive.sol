@@ -146,7 +146,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     /// @notice Gas kept in hand before starting another settlement request inside one reactive transaction.
     /// When less is left, the rest of the invoice's balances are requested on the next cron tick instead, so a
     /// cover with many funded chains never runs into the 900k reactive gas cap.
-    uint256 public constant GAS_RESERVE = 250_000;
+    uint256 public constant GAS_RESERVE = 320_000;
     /// @notice Flagged wrong-token entries kept per invoice. Beyond it inflows are only counted, which bounds
     /// what spam sent to a public pay address can cost.
     uint256 public constant MAX_FLAGGED = 16;
