@@ -72,3 +72,44 @@ ci-node:
 smoke:
 	cd tools/smoke && pnpm install --frozen-lockfile && \
 		SMOKE_URL=$(SMOKE_URL) SMOKE_TITLE=Daybook SMOKE_TEXT=paid pnpm run test
+
+# Evidence. `make summary` writes evidence/summary.json from evidence/loops.csv, fresh test runs and a chain
+# snapshot pinned at a Lasna block, then regenerates README.md and JUDGE.md from it. `make verify` rebuilds every
+# published number from public RPCs and Sourcify and fails on any mismatch (FRESH=1 ignores the receipt cache).
+# `make docs-check` fails if README.md or JUDGE.md differ from what the generator makes.
+VERIFY_DIR := tools/verify
+SUMMARY_TMP ?= $(or $(TMPDIR),/tmp)/daybook-summary
+FRESH ?=
+VERIFY_FLAGS = $(if $(FRESH),--fresh,)
+.PHONY: verify summary docs docs-check verify-deps test-verify
+
+verify-deps:
+	cd $(VERIFY_DIR) && pnpm install --frozen-lockfile
+
+test-verify: verify-deps
+	cd $(VERIFY_DIR) && pnpm typecheck && pnpm test
+
+test: test-verify
+
+verify: verify-deps
+	cd $(VERIFY_DIR) && node src/verify.ts $(VERIFY_FLAGS)
+
+summary: verify-deps
+	mkdir -p $(SUMMARY_TMP)
+	cd contracts && BASE_RPC_URL=$(BASE_RPC_URL) forge test --json > $(SUMMARY_TMP)/forge.json
+	cd web && pnpm install --frozen-lockfile --allow-build esbuild && \
+		pnpm exec vitest run --reporter=json --outputFile=$(SUMMARY_TMP)/vitest.json
+	cd scripts && pnpm install --frozen-lockfile && \
+		node --test --test-reporter=tap src/*.test.ts src/trace/*.test.ts > $(SUMMARY_TMP)/scripts.tap
+	cd $(VERIFY_DIR) && node --test --test-reporter=tap src/*.test.ts > $(SUMMARY_TMP)/verify.tap
+	cd $(VERIFY_DIR) && node src/summary-cli.ts $(VERIFY_FLAGS) --forge $(SUMMARY_TMP)/forge.json \
+		--vitest $(SUMMARY_TMP)/vitest.json --scripts-tap $(SUMMARY_TMP)/scripts.tap --verify-tap $(SUMMARY_TMP)/verify.tap
+	node tools/judge/generate.mjs
+
+docs:
+	node tools/judge/generate.mjs
+
+docs-check:
+	node tools/judge/generate.mjs --check
+
+ci: docs-check

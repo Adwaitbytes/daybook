@@ -1,0 +1,22 @@
+{
+  "name": "@daybook/verify",
+  "private": true,
+  "type": "module",
+  "description": "make verify and make summary: rebuild every published Daybook number from public RPCs and Sourcify, compare it with evidence/ and evidence/summary.json, fail on any mismatch",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/*.test.ts",
+    "summary": "node src/summary-cli.ts",
+    "verify": "node src/verify.ts"
+  },
+  "dependencies": {
+    "viem": "2.58.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
