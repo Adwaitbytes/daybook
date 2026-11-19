@@ -1,0 +1,9 @@
+.env*
+!.env.example
+out/
+cache/
+node_modules/
+broadcast/*/31337/
+.DS_Store
+dist/
+*.log
