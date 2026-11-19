@@ -99,16 +99,29 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint256 txHash;
     }
 
+    /// @dev Two storage slots. Chain and token come from the invoice's accepted pair, the receipt payer from
+    /// the pair's latest payer at send time; keeping them out of storage keeps a multi-chain cover under the
+    /// reactive gas cap.
     struct Settlement {
         uint64 invoiceId;
-        uint64 chainId;
+        uint64 lastSentAt;
+        uint32 pendingIndex; // 1-based position in the pending queue, 0 when not queued
+        uint8 pairIndex;
+        uint8 attempts;
+        SettlementStatus status;
+        uint128 amount;
+        uint128 excess;
+    }
+
+    struct SettlementView {
+        uint256 invoiceId;
+        uint256 chainId;
+        address token;
+        uint256 amount;
+        uint256 excess;
         uint64 lastSentAt;
         uint8 attempts;
         SettlementStatus status;
-        address token;
-        address payer;
-        uint128 amount;
-        uint128 excess;
     }
 
     // -------------------------------------------------------------- constants
@@ -128,9 +141,12 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     /// @notice Decimals of the invoice amount. Token amounts are normalized to this before comparison.
     uint8 public constant INVOICE_DECIMALS = 6;
-    /// @notice Accepted (chain, token) pairs per invoice. Bounded so covering an invoice with every pair funded
-    /// still fits the 900k reactive gas cap (measured in the test suite).
-    uint256 public constant MAX_ACCEPTED = 5;
+    /// @notice Accepted (chain, token) pairs per invoice. Bounds every per-invoice loop.
+    uint256 public constant MAX_ACCEPTED = 8;
+    /// @notice Gas kept in hand before starting another settlement request inside one reactive transaction.
+    /// When less is left, the rest of the invoice's balances are requested on the next cron tick instead, so a
+    /// cover with many funded chains never runs into the 900k reactive gas cap.
+    uint256 public constant GAS_RESERVE = 250_000;
     /// @notice Flagged wrong-token entries kept per invoice. Beyond it inflows are only counted, which bounds
     /// what spam sent to a public pay address can cost.
     uint256 public constant MAX_FLAGGED = 16;
@@ -167,7 +183,6 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     mapping(uint256 invoiceId => AcceptedToken[]) internal _accepted;
     mapping(uint256 invoiceId => Sub[]) internal _subs;
     mapping(uint256 invoiceId => mapping(uint256 pairIndex => PairState)) internal _pairs;
-    mapping(uint256 invoiceId => uint256[]) internal _invoiceSeqs;
     mapping(address payAddress => uint256 invoiceId) public invoiceOfPayAddress;
 
     /// @notice Origin logs already processed, keyed by keccak256(chainId, txHash, logIndex).
@@ -179,9 +194,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     mapping(uint256 seq => Settlement) internal _settlements;
 
     uint256[] internal _pending;
-    mapping(uint256 seq => uint256 indexPlusOne) internal _pendingIndex;
-    uint256[] internal _timed;
-    mapping(uint256 invoiceId => uint256 indexPlusOne) internal _timedIndex;
+    IdSet.Set internal _timed; // open invoices with a due or expiry time
+    IdSet.Set internal _closing; // closed invoices whose balances are not all sent for settlement yet
     uint256 internal _pendingCursor;
     uint256 internal _timedCursor;
 
@@ -253,6 +267,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     error BadTimes();
     error NotOpen(uint256 invoiceId);
     error NotStuck(uint256 seq);
+    error NotOutstanding(uint256 seq);
     error GasLimitTooLow(uint64 gasLimit);
     error ResendTooSoon(uint64 secondsAfter);
     error NativeTransferFailed();
@@ -381,7 +396,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         );
 
         _buildAndSubscribe(invoiceId, pay, p.strictTokens);
-        if (p.dueAt != 0 || p.expiresAt != 0) _timedAdd(invoiceId);
+        if (p.dueAt != 0 || p.expiresAt != 0) IdSet.add(_timed, invoiceId);
         _syncCron();
     }
 
@@ -392,7 +407,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         if (inv.status != InvoiceStatus.Open) revert NotOpen(invoiceId);
         inv.status = InvoiceStatus.Cancelled;
         emit InvoiceCancelled(invoiceId);
-        _close(invoiceId, false);
+        _close(invoiceId);
         _syncCron();
     }
 
@@ -404,6 +419,15 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         s.attempts = 0;
         _pendingAdd(seq);
         _send(seq);
+        _syncCron();
+    }
+
+    /// @notice Marks a pending or stuck settlement as handled by hand (for example after an owner sweep whose
+    /// acknowledgement was lost), so it stops counting against the invoice.
+    function resolveSettlement(uint256 seq) external onlyOwner {
+        Settlement storage s = _settlements[seq];
+        if (s.status != SettlementStatus.Pending && s.status != SettlementStatus.Stuck) revert NotOutstanding(seq);
+        _resolve(seq, s);
         _syncCron();
     }
 
@@ -463,16 +487,24 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         return _pairs[invoiceId][pairIndex];
     }
 
-    function settlementsOf(uint256 invoiceId) external view returns (uint256[] memory) {
-        return _invoiceSeqs[invoiceId];
-    }
-
     function getPolicy(uint32 policyId) external view returns (SplitPolicy memory) {
         return _policies[policyId];
     }
 
-    function getSettlement(uint256 seq) external view returns (Settlement memory) {
-        return _settlements[seq];
+    function getSettlement(uint256 seq) external view returns (SettlementView memory v) {
+        Settlement storage s = _settlements[seq];
+        if (s.status == SettlementStatus.None) return v;
+        AcceptedToken storage a = _accepted[s.invoiceId][s.pairIndex];
+        v = SettlementView({
+            invoiceId: s.invoiceId,
+            chainId: a.chainId,
+            token: a.token,
+            amount: s.amount,
+            excess: s.excess,
+            lastSentAt: s.lastSentAt,
+            attempts: s.attempts,
+            status: s.status
+        });
     }
 
     function ledgerLength() external view returns (uint256) {
@@ -488,7 +520,11 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     }
 
     function timedInvoices() external view returns (uint256[] memory) {
-        return _timed;
+        return _timed.items;
+    }
+
+    function closingInvoices() external view returns (uint256[] memory) {
+        return _closing.items;
     }
 
     // -------------------------------------------------------------- transfers
@@ -509,7 +545,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
         address payer = address(uint160(log_.topic1));
         (bool found, uint256 pairIndex) = _findPair(invoiceId, log_.chainId, log_.contractAddress);
-        if (!found || value > type(uint128).max) {
+        // Accepted-token values above uint96 (8e28 raw units) cannot be real stablecoin payments; flag them.
+        if (!found || value > type(uint96).max) {
             _flagWrongToken(invoiceId, log_, payer, value);
             return;
         }
@@ -533,7 +570,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
                 ? EntryKind.Late
                 : EntryKind.Orphaned;
             _record(invoiceId, log_, payer, kind, value, value);
-            _requestSettlement(invoiceId, pairIndex, 0, value, payer);
+            _requestSettlement(invoiceId, pairIndex, 0, value);
         }
         _syncCron();
     }
@@ -612,26 +649,41 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     function _onCovered(uint256 invoiceId) internal {
         _invoices[invoiceId].status = InvoiceStatus.Paid;
         emit InvoicePaid(invoiceId);
-        _close(invoiceId, true);
+        _close(invoiceId);
     }
 
-    /// @dev Stops watching the invoice and sends every chain's held balance for settlement. When `asIncome` is
-    /// false (cancel, expiry) the counted part is sent as excess so it is not split as income.
-    function _close(uint256 invoiceId, bool asIncome) internal {
+    /// @dev Stops watching the invoice and sends every chain's held balance for settlement.
+    function _close(uint256 invoiceId) internal {
         _unsubscribeInvoice(invoiceId);
-        _timedRemove(invoiceId);
+        IdSet.remove(_timed, invoiceId);
+        _sendBalances(invoiceId);
+    }
+
+    /// @dev Requests settlement of every held pair balance while gas allows; whatever is left waits in the
+    /// closing set for the next cron tick. For a paid invoice the counted part is income and is split; after
+    /// cancellation or expiry everything goes to the treasury as excess.
+    /// @return done Whether every balance has been sent.
+    function _sendBalances(uint256 invoiceId) internal returns (bool done) {
+        Invoice storage inv = _invoices[invoiceId];
+        bool asIncome = inv.status == InvoiceStatus.Paid;
         uint256 n = _accepted[invoiceId].length;
         for (uint256 i; i < n; ++i) {
             PairState storage pair = _pairs[invoiceId][i];
             uint256 counted = pair.counted;
             uint256 excess = pair.excess;
             if (counted == 0 && excess == 0) continue;
+            if (gasleft() < GAS_RESERVE) {
+                IdSet.add(_closing, invoiceId);
+                return false;
+            }
             pair.counted = 0;
             pair.excess = 0;
-            if (asIncome) _requestSettlement(invoiceId, i, counted, excess, pair.lastPayer);
-            else _requestSettlement(invoiceId, i, 0, counted + excess, pair.lastPayer);
+            if (asIncome) _requestSettlement(invoiceId, i, counted, excess);
+            else _requestSettlement(invoiceId, i, 0, counted + excess);
         }
-        if (asIncome && _invoices[invoiceId].openSettlements == 0) _markSettled(invoiceId);
+        IdSet.remove(_closing, invoiceId);
+        if (inv.status == InvoiceStatus.Paid && inv.openSettlements == 0) _markSettled(invoiceId);
+        return true;
     }
 
     function _markSettled(uint256 invoiceId) internal {
@@ -641,23 +693,18 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     // ------------------------------------------------------------ settlements
 
-    function _requestSettlement(uint256 invoiceId, uint256 pairIndex, uint256 amount, uint256 excess, address payer)
-        internal
-    {
-        AcceptedToken memory a = _accepted[invoiceId][pairIndex];
+    function _requestSettlement(uint256 invoiceId, uint256 pairIndex, uint256 amount, uint256 excess) internal {
         uint256 seq = ++nextSeq;
         _settlements[seq] = Settlement({
             invoiceId: uint64(invoiceId),
-            chainId: a.chainId,
             lastSentAt: 0,
+            pendingIndex: 0,
+            pairIndex: uint8(pairIndex),
             attempts: 0,
             status: SettlementStatus.Pending,
-            token: a.token,
-            payer: payer,
             amount: uint128(amount),
             excess: uint128(excess)
         });
-        _invoiceSeqs[invoiceId].push(seq);
         ++_invoices[invoiceId].openSettlements;
         _pendingAdd(seq);
         _send(seq);
@@ -668,24 +715,25 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         s.attempts += 1;
         s.lastSentAt = uint64(block.timestamp);
         uint256 invoiceId = s.invoiceId;
-        emit SettlementRequested(seq, invoiceId, s.chainId, s.token, s.amount, s.excess, s.attempts);
+        AcceptedToken memory a = _accepted[invoiceId][s.pairIndex];
+        emit SettlementRequested(seq, invoiceId, a.chainId, a.token, s.amount, s.excess, s.attempts);
         bytes memory payload = abi.encodeCall(
             IDaybookTill.settle,
             (
                 address(0), // replaced by the system with this contract's address
                 invoiceId,
                 seq,
-                s.token,
+                a.token,
                 s.amount,
                 s.excess,
-                s.payer,
+                _pairs[invoiceId][s.pairIndex].lastPayer,
                 _policies[_invoices[invoiceId].policyId]
             )
         );
         SYSTEM.requestCallbackV_1_0(
             ISystemContract.CallbackConfiguration_V_1_0({
-                chainId: s.chainId,
-                recipient: tillOf[s.chainId],
+                chainId: a.chainId,
+                recipient: tillOf[a.chainId],
                 gasLimit: callbackGasLimit,
                 payload: payload
             })
@@ -696,64 +744,82 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint256 seq = log_.topic2;
         Settlement storage s = _settlements[seq];
         if (s.status != SettlementStatus.Pending && s.status != SettlementStatus.Stuck) return;
-        if (s.invoiceId != log_.topic1 || s.chainId != log_.chainId || s.token != address(uint160(log_.topic3))) {
+        AcceptedToken storage a = _accepted[s.invoiceId][s.pairIndex];
+        if (s.invoiceId != log_.topic1 || a.chainId != log_.chainId || a.token != address(uint160(log_.topic3))) {
             return;
         }
         s.status = SettlementStatus.Acked;
-        emit SettlementAcked(seq, s.invoiceId);
-        _finishSettlement(seq, s.invoiceId);
+        uint256 invoiceId = s.invoiceId;
+        emit SettlementAcked(seq, invoiceId);
+        _finishSettlement(s, invoiceId);
         _syncCron();
     }
 
     function _onManualSweep(uint256 chainId, uint256 invoiceId, address token) internal {
         if (_invoices[invoiceId].status == InvoiceStatus.None) return;
-        // The owner moved the funds by hand: stop resending anything for this invoice, chain and token.
-        uint256[] storage seqs = _invoiceSeqs[invoiceId];
-        for (uint256 i; i < seqs.length; ++i) {
-            Settlement storage s = _settlements[seqs[i]];
-            if (s.chainId != chainId || s.token != token) continue;
-            if (s.status != SettlementStatus.Pending && s.status != SettlementStatus.Stuck) continue;
-            s.status = SettlementStatus.Resolved;
-            emit SettlementResolved(seqs[i], invoiceId);
-            _finishSettlement(seqs[i], invoiceId);
+        (bool found, uint256 pairIndex) = _findPair(invoiceId, chainId, token);
+        if (!found) return;
+        // The owner moved the funds by hand: stop resending anything queued for this invoice and pair. Walk the
+        // queue backwards because resolving removes entries by swap-and-pop.
+        for (uint256 i = _pending.length; i > 0; --i) {
+            uint256 seq = _pending[i - 1];
+            Settlement storage s = _settlements[seq];
+            if (s.invoiceId == invoiceId && s.pairIndex == pairIndex) _resolve(seq, s);
         }
         // And forget any balance still held for it, so a later cover does not ask to sweep money that is gone.
-        (bool found, uint256 pairIndex) = _findPair(invoiceId, chainId, token);
-        if (found) {
-            PairState storage pair = _pairs[invoiceId][pairIndex];
-            if (pair.counted != 0 || pair.excess != 0) {
-                emit PairBalanceCleared(invoiceId, chainId, token, pair.counted, pair.excess);
-                pair.counted = 0;
-                pair.excess = 0;
-            }
+        PairState storage pair = _pairs[invoiceId][pairIndex];
+        if (pair.counted != 0 || pair.excess != 0) {
+            emit PairBalanceCleared(invoiceId, chainId, token, pair.counted, pair.excess);
+            pair.counted = 0;
+            pair.excess = 0;
         }
         _syncCron();
     }
 
-    function _finishSettlement(uint256 seq, uint256 invoiceId) internal {
-        _pendingRemove(seq);
+    function _resolve(uint256 seq, Settlement storage s) internal {
+        s.status = SettlementStatus.Resolved;
+        uint256 invoiceId = s.invoiceId;
+        emit SettlementResolved(seq, invoiceId);
+        _finishSettlement(s, invoiceId);
+    }
+
+    function _finishSettlement(Settlement storage s, uint256 invoiceId) internal {
+        _pendingRemove(s);
         Invoice storage inv = _invoices[invoiceId];
         --inv.openSettlements;
-        if (inv.openSettlements == 0 && inv.status == InvoiceStatus.Paid) _markSettled(invoiceId);
+        if (inv.openSettlements == 0 && inv.status == InvoiceStatus.Paid && !IdSet.contains(_closing, invoiceId)) {
+            _markSettled(invoiceId);
+        }
     }
 
     // --------------------------------------------------------- scheduled work
 
     function _runScheduledWork() internal {
+        _processClosing();
         _processTimed();
         _processPending();
         _syncCron();
     }
 
+    function _processClosing() internal {
+        uint256[] storage items = _closing.items;
+        // Walk backwards: a finished invoice is removed by swap-and-pop.
+        for (uint256 i = items.length; i > 0; --i) {
+            if (gasleft() < GAS_RESERVE) return;
+            if (!_sendBalances(items[i - 1])) return;
+        }
+    }
+
     function _processTimed() internal {
-        uint256 len = _timed.length;
+        uint256[] storage items = _timed.items;
+        uint256 len = items.length;
         if (len == 0) return;
         uint256 work = len < MAX_CRON_WORK ? len : MAX_CRON_WORK;
         uint256 i = _timedCursor % len;
         for (uint256 k; k < work; ++k) {
-            if (_timed.length == 0) break;
-            if (i >= _timed.length) i = 0;
-            if (!_checkTimed(_timed[i])) ++i;
+            if (items.length == 0 || gasleft() < GAS_RESERVE) break;
+            if (i >= items.length) i = 0;
+            if (!_checkTimed(items[i])) ++i;
         }
         _timedCursor = i;
     }
@@ -764,14 +830,14 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         if (inv.expiresAt != 0 && block.timestamp >= inv.expiresAt) {
             inv.status = InvoiceStatus.Expired;
             emit InvoiceExpired(invoiceId);
-            _close(invoiceId, false);
+            _close(invoiceId);
             return true;
         }
         if (inv.dueAt != 0 && !inv.overdue && block.timestamp >= inv.dueAt) {
             inv.overdue = true;
             emit InvoiceOverdue(invoiceId);
             if (inv.expiresAt == 0) {
-                _timedRemove(invoiceId);
+                IdSet.remove(_timed, invoiceId);
                 return true;
             }
         }
@@ -784,7 +850,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         uint256 work = len < MAX_CRON_WORK ? len : MAX_CRON_WORK;
         uint256 i = _pendingCursor % len;
         for (uint256 k; k < work; ++k) {
-            if (_pending.length == 0) break;
+            if (_pending.length == 0 || gasleft() < GAS_RESERVE) break;
             if (i >= _pending.length) i = 0;
             if (!_checkPending(_pending[i])) ++i;
         }
@@ -798,7 +864,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         if (s.attempts >= MAX_ATTEMPTS) {
             s.status = SettlementStatus.Stuck;
             emit SettlementStuck(seq, s.invoiceId);
-            _pendingRemove(seq);
+            _pendingRemove(s);
             return true;
         }
         _send(seq);
@@ -867,7 +933,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     /// @dev Cron is billed every tick, so it is held only while some invoice has a due or expiry time or some
     /// settlement awaits its acknowledgement.
     function _syncCron() internal {
-        bool need = _timed.length != 0 || _pending.length != 0;
+        bool need = _timed.items.length != 0 || _pending.length != 0 || _closing.items.length != 0;
         if (need == cronActive) return;
         cronActive = need;
         if (need) _subscribe(_cronSub());
@@ -889,34 +955,48 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     // ------------------------------------------------------------ index sets
 
     function _pendingAdd(uint256 seq) internal {
-        if (_pendingIndex[seq] != 0) return;
+        Settlement storage s = _settlements[seq];
+        if (s.pendingIndex != 0) return;
         _pending.push(seq);
-        _pendingIndex[seq] = _pending.length;
+        s.pendingIndex = uint32(_pending.length);
     }
 
-    function _pendingRemove(uint256 seq) internal {
-        uint256 idx = _pendingIndex[seq];
+    /// @dev Swap-and-pop. When `s` is the last entry the moved index is written to it and then cleared.
+    function _pendingRemove(Settlement storage s) internal {
+        uint256 idx = s.pendingIndex;
         if (idx == 0) return;
         uint256 last = _pending[_pending.length - 1];
         _pending[idx - 1] = last;
-        _pendingIndex[last] = idx;
+        _settlements[last].pendingIndex = uint32(idx);
         _pending.pop();
-        delete _pendingIndex[seq];
+        s.pendingIndex = 0;
+    }
+}
+
+/// @notice Unordered set of ids with O(1) add, remove and membership, used for the cron work queues.
+library IdSet {
+    struct Set {
+        uint256[] items;
+        mapping(uint256 id => uint256 indexPlusOne) index;
     }
 
-    function _timedAdd(uint256 invoiceId) internal {
-        if (_timedIndex[invoiceId] != 0) return;
-        _timed.push(invoiceId);
-        _timedIndex[invoiceId] = _timed.length;
+    function add(Set storage set, uint256 id) internal {
+        if (set.index[id] != 0) return;
+        set.items.push(id);
+        set.index[id] = set.items.length;
     }
 
-    function _timedRemove(uint256 invoiceId) internal {
-        uint256 idx = _timedIndex[invoiceId];
+    function remove(Set storage set, uint256 id) internal {
+        uint256 idx = set.index[id];
         if (idx == 0) return;
-        uint256 last = _timed[_timed.length - 1];
-        _timed[idx - 1] = last;
-        _timedIndex[last] = idx;
-        _timed.pop();
-        delete _timedIndex[invoiceId];
+        uint256 last = set.items[set.items.length - 1];
+        set.items[idx - 1] = last;
+        set.index[last] = idx;
+        set.items.pop();
+        delete set.index[id];
+    }
+
+    function contains(Set storage set, uint256 id) internal view returns (bool) {
+        return set.index[id] != 0;
     }
 }
