@@ -108,7 +108,9 @@ contract DaybookReactiveTest is DaybookFixture {
     }
 
     function test_CreateInvoice_RejectsZeroAmount() public {
-        _expectCreateRevert(_params(0, _acceptAB(), 0, 0, false), abi.encodeWithSelector(DaybookReactive.ZeroAmount.selector));
+        _expectCreateRevert(
+            _params(0, _acceptAB(), 0, 0, false), abi.encodeWithSelector(DaybookReactive.ZeroAmount.selector)
+        );
     }
 
     function test_CreateInvoice_RejectsUnknownPolicy() public {
@@ -205,7 +207,11 @@ contract DaybookReactiveTest is DaybookFixture {
             assertEq(s[i].topic1, REACTIVE_IGNORE);
             assertEq(s[i].topic2, pay);
             assertEq(s[i].topic3, REACTIVE_IGNORE);
-            assertTrue(sys.isActive(address(reactive), s[i].chainId, address(0), TRANSFER_TOPIC, REACTIVE_IGNORE, pay, REACTIVE_IGNORE));
+            assertTrue(
+                sys.isActive(
+                    address(reactive), s[i].chainId, address(0), TRANSFER_TOPIC, REACTIVE_IGNORE, pay, REACTIVE_IGNORE
+                )
+            );
         }
     }
 
@@ -238,8 +244,16 @@ contract DaybookReactiveTest is DaybookFixture {
         _flush();
         assertEq(reactive.tillOf(CHAIN_A), newTill);
         uint256 settled = uint256(IDaybookTill.Settled.selector);
-        assertFalse(sys.isActive(address(reactive), CHAIN_A, oldTill, settled, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE));
-        assertTrue(sys.isActive(address(reactive), CHAIN_A, newTill, settled, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE));
+        assertFalse(
+            sys.isActive(
+                address(reactive), CHAIN_A, oldTill, settled, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+            )
+        );
+        assertTrue(
+            sys.isActive(
+                address(reactive), CHAIN_A, newTill, settled, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+            )
+        );
         assertEq(unsubscribeMisses, 0);
 
         vm.prank(owner);
@@ -256,10 +270,16 @@ contract DaybookReactiveTest is DaybookFixture {
 
     // ------------------------------------------------------------- filtering
 
-    function _record(uint256 chainId, address emitter, uint256 t0, uint256 t1, uint256 t2, uint256 t3, uint256 opCode, bytes memory data)
-        internal
-        returns (IReactive.LogRecord memory rec)
-    {
+    function _record(
+        uint256 chainId,
+        address emitter,
+        uint256 t0,
+        uint256 t1,
+        uint256 t2,
+        uint256 t3,
+        uint256 opCode,
+        bytes memory data
+    ) internal returns (IReactive.LogRecord memory rec) {
         rec.chainId = chainId;
         rec.contractAddress = emitter;
         rec.topic0 = t0;
@@ -421,7 +441,14 @@ contract DaybookReactiveTest is DaybookFixture {
         address pay = reactive.payAddressOf(id);
         usd[CHAIN_A].mint(pay, 3e6);
         IReactive.LogRecord memory rec = _record(
-            CHAIN_A, address(usd[CHAIN_A]), TRANSFER_TOPIC, uint256(uint160(payer)), uint256(uint160(pay)), 0, 3, abi.encode(3e6)
+            CHAIN_A,
+            address(usd[CHAIN_A]),
+            TRANSFER_TOPIC,
+            uint256(uint160(payer)),
+            uint256(uint160(pay)),
+            0,
+            3,
+            abi.encode(3e6)
         );
         _react(address(reactive), rec);
         _drain();
@@ -448,7 +475,17 @@ contract DaybookReactiveTest is DaybookFixture {
     function test_Cron_NotSubscribedForUntimedInvoices() public {
         _createAB(AMOUNT);
         assertFalse(reactive.cronActive());
-        assertFalse(sys.isActive(address(reactive), block.chainid, CRON_EMITTER, CRON100, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE));
+        assertFalse(
+            sys.isActive(
+                address(reactive),
+                block.chainid,
+                CRON_EMITTER,
+                CRON100,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            )
+        );
     }
 
     function test_Cron_TickBeforeDueDoesNothing() public {

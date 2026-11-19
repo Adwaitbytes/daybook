@@ -41,7 +41,12 @@ contract DaybookTill is IDaybookTill, AbstractCallback, Ownable2Step, Pausable, 
     mapping(uint256 invoiceId => mapping(uint256 seq => bool done)) public settled;
 
     event Receipt(
-        uint256 indexed invoiceId, uint256 indexed seq, address indexed payer, address token, uint256 amount, bytes32 uid
+        uint256 indexed invoiceId,
+        uint256 indexed seq,
+        address indexed payer,
+        address token,
+        uint256 amount,
+        bytes32 uid
     );
     event Payout(uint256 indexed invoiceId, address indexed token, address indexed to, uint256 amount, uint8 role);
     event PayoutRedirected(uint256 indexed invoiceId, address indexed token, address indexed intended, uint256 amount);

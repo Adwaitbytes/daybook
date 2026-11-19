@@ -215,7 +215,13 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         AcceptedToken[] accepted
     );
     event SubscriptionChanged(
-        uint256 chainId, address contractAddr, uint256 topic0, uint256 topic1, uint256 topic2, uint256 topic3, bool active
+        uint256 chainId,
+        address contractAddr,
+        uint256 topic0,
+        uint256 topic1,
+        uint256 topic2,
+        uint256 topic3,
+        bool active
     );
     event LedgerRecorded(
         uint256 indexed index,
@@ -248,7 +254,9 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
     event SettlementAcked(uint256 indexed seq, uint256 indexed invoiceId);
     event SettlementStuck(uint256 indexed seq, uint256 indexed invoiceId);
     event SettlementResolved(uint256 indexed seq, uint256 indexed invoiceId);
-    event PairBalanceCleared(uint256 indexed invoiceId, uint256 chainId, address token, uint256 counted, uint256 excess);
+    event PairBalanceCleared(
+        uint256 indexed invoiceId, uint256 chainId, address token, uint256 counted, uint256 excess
+    );
     event CronActive(bool active);
     event CallbackGasLimitSet(uint64 gasLimit);
     event ResendAfterSet(uint64 secondsAfter);
@@ -466,9 +474,8 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
 
     /// @notice The pay address of an invoice: identical on every chain where the factory is deployed.
     function payAddressOf(uint256 invoiceId) public view returns (address) {
-        return Clones.predictDeterministicAddress(
-            VAULT_IMPLEMENTATION, DaybookLib.salt(address(this), invoiceId), FACTORY
-        );
+        return
+            Clones.predictDeterministicAddress(VAULT_IMPLEMENTATION, DaybookLib.salt(address(this), invoiceId), FACTORY);
     }
 
     function getInvoice(uint256 invoiceId) external view returns (Invoice memory) {
@@ -631,7 +638,16 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
             })
         );
         emit LedgerRecorded(
-            index, invoiceId, kind, log_.chainId, log_.contractAddress, payer, amount, excess, log_.txHash, log_.logIndex
+            index,
+            invoiceId,
+            kind,
+            log_.chainId,
+            log_.contractAddress,
+            payer,
+            amount,
+            excess,
+            log_.txHash,
+            log_.logIndex
         );
     }
 
@@ -732,10 +748,7 @@ contract DaybookReactive is AbstractReactive, Ownable2Step {
         );
         SYSTEM.requestCallbackV_1_0(
             ISystemContract.CallbackConfiguration_V_1_0({
-                chainId: a.chainId,
-                recipient: tillOf[a.chainId],
-                gasLimit: callbackGasLimit,
-                payload: payload
+                chainId: a.chainId, recipient: tillOf[a.chainId], gasLimit: callbackGasLimit, payload: payload
             })
         );
     }

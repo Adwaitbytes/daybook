@@ -155,6 +155,7 @@ abstract contract DaybookFixture is OmniHarness {
     /// @notice Total of `token` held across the treasury, team, reserve and the till's own balance.
     function _paidOut(uint256 chainId) internal view returns (uint256) {
         MockERC20 t = usd[chainId];
-        return t.balanceOf(treasury) + t.balanceOf(team1) + t.balanceOf(team2) + t.balanceOf(address(reserveOn[chainId]));
+        return
+            t.balanceOf(treasury) + t.balanceOf(team1) + t.balanceOf(team2) + t.balanceOf(address(reserveOn[chainId]));
     }
 }

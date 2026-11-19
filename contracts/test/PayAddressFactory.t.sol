@@ -84,7 +84,10 @@ contract PayAddressFactoryTest is Test {
     /// @notice The property everything rests on: deployed through the CREATE2 deployer with the same salt and
     /// init code, the factory and every pay address land at the same address whatever the chain id.
     function test_Deterministic_SameAddressesOnEveryChain() public {
-        vm.etch(CREATE2_DEPLOYER, hex"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3");
+        vm.etch(
+            CREATE2_DEPLOYER,
+            hex"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3"
+        );
         bytes memory init = abi.encodePacked(type(PayAddressFactory).creationCode, abi.encode(owner));
         bytes32 salt = keccak256("daybook.factory.v1");
         uint256[4] memory chains = [uint256(84_532), 1301, 8453, 42_161];
