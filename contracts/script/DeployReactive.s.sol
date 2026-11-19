@@ -18,6 +18,7 @@ contract DeployReactive is DaybookScript {
         uint256 fund = vm.envOr("REACTIVE_FUND_WEI", uint256(0));
         address factory = _predictFactory(owner);
 
+        _checkLasnaGasPrice();
         vm.startBroadcast();
         reactive = new DaybookReactive{ value: fund }(owner, factory, tier == 100 ? CRON100 : CRON1000);
         vm.stopBroadcast();

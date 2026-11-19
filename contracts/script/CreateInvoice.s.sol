@@ -32,6 +32,7 @@ contract CreateInvoice is DaybookScript {
             accepted: acc
         });
 
+        _checkLasnaGasPrice();
         vm.startBroadcast();
         id = reactive.createInvoice(p);
         vm.stopBroadcast();

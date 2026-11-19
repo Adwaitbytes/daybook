@@ -15,7 +15,7 @@ import { EasReceiptIssuer, IEAS } from "../src/EasReceiptIssuer.sol";
 /// Env: OWNER (must be the broadcaster), REACTIVE, CALLBACK_PROXY, USDC, MAX_SETTLEMENT (token units),
 /// TILL_FUND_WEI (optional), EAS and EAS_SCHEMA (optional, both or neither), FACTORY_SALT (optional).
 contract DeployTill is DaybookScript {
-    function run() external {
+    function run() external returns (address factoryAddr, address tillAddr) {
         address owner = _envAddress("OWNER");
         address reactive = _envAddress("REACTIVE");
         address proxy = _envAddress("CALLBACK_PROXY");
@@ -25,16 +25,10 @@ contract DeployTill is DaybookScript {
         address eas = vm.envOr("EAS", address(0));
         bytes32 schema = vm.envOr("EAS_SCHEMA", bytes32(0));
         require((eas == address(0)) == (schema == bytes32(0)), "set EAS and EAS_SCHEMA together");
-        require(CREATE2_DEPLOYER.code.length > 0, "no CREATE2 deployer on this chain");
         require(usdc.code.length > 0, "USDC has no code on this chain");
 
-        address predicted = _predictFactory(owner);
         vm.startBroadcast();
-        PayAddressFactory factory = PayAddressFactory(predicted);
-        if (predicted.code.length == 0) {
-            factory = new PayAddressFactory{ salt: _factorySalt() }(owner);
-            require(address(factory) == predicted, "factory landed at an unexpected address");
-        }
+        PayAddressFactory factory = PayAddressFactory(_ensureFactory(owner));
         DaybookTill till = new DaybookTill{ value: fund }(IPayable(payable(proxy)), reactive, factory, owner);
         SavingsVault vault = new SavingsVault(owner);
         factory.setTill(address(till), true);
@@ -52,5 +46,6 @@ contract DeployTill is DaybookScript {
         console.log("DaybookTill", address(till));
         console.log("SavingsVault", address(vault));
         console.log("EasReceiptIssuer", issuer);
+        return (address(factory), address(till));
     }
 }

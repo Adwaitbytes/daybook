@@ -28,6 +28,7 @@ contract Wire is DaybookScript {
         }
         uint256 gasLimit = vm.envOr("CALLBACK_GAS_LIMIT", uint256(0));
 
+        _checkLasnaGasPrice();
         vm.startBroadcast();
         for (uint256 i; i < chainIds.length; ++i) {
             reactive.setTill(chainIds[i], tills[i]);
