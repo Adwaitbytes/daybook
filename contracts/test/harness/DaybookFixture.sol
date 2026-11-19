@@ -62,7 +62,7 @@ abstract contract DaybookFixture is OmniHarness {
     }
 
     function _deployChain(uint256 chainId, string memory symbol, uint8 decimals) internal {
-        MockCallbackProxy proxy = new MockCallbackProxy();
+        MockCallbackProxy proxy = new MockCallbackProxy(chainId == CHAIN_C ? 200_000 : 130_000);
         proxyOf[chainId] = proxy;
         DaybookTill till = new DaybookTill(IPayable(payable(address(proxy))), address(reactive), factory, owner);
         SavingsVault reserve = new SavingsVault(owner);

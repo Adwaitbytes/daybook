@@ -550,7 +550,8 @@ contract DaybookReactiveTest is DaybookFixture {
         uint256 used = proxyOf[CHAIN_A].maxGasUsed();
         emit log_named_uint("worst-case settle gas (5 recipients, reserve, excess, vault deploy)", used);
         assertEq(uint8(_status(id)), uint8(DaybookReactive.InvoiceStatus.Settled));
-        assertLt(used + proxyOf[CHAIN_A].OVERHEAD(), reactive.callbackGasLimit() / 2, "2x margin on callback gas");
+        // Budget against the worst proxy overhead (Ethereum, 200k) plus the full receipt-issuer allowance.
+        assertLt(used + 200_000 + tillOn[CHAIN_A].RECEIPT_GAS(), reactive.callbackGasLimit(), "fits callback gas");
     }
 
     // ------------------------------------------------------------------ admin

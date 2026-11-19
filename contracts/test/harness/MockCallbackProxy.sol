@@ -6,9 +6,14 @@ pragma solidity ^0.8.29;
 /// proxy keeps gas for its own accounting), calls the recipient, and reports failure as an event instead of
 /// reverting, like the real proxy's `CallbackFailure`. It charges nothing.
 contract MockCallbackProxy {
-    /// @notice Gas withheld from the requested limit before the call, an assumption standing in for the real
-    /// proxy's `_extraGas` and `_maxChargeGas`, which must be read from each live proxy.
-    uint256 public constant OVERHEAD = 60_000;
+    /// @notice Gas withheld from the requested limit before the call: the live proxy's `_extraGas` plus
+    /// `_maxChargeGas`, read on 19 Nov 2026 (ref/FACTS.md): 80k + 50k on Base, Unichain and Arbitrum (and their
+    /// testnets), 150k + 50k on Ethereum and Ethereum Sepolia.
+    uint256 public immutable OVERHEAD;
+
+    constructor(uint256 overhead_) {
+        OVERHEAD = overhead_;
+    }
 
     event CallbackDelivered(address indexed recipient, address indexed rc, bool ok, uint256 gasUsed);
     event CallbackFailure(address indexed recipient, address indexed rc, bytes reason);
